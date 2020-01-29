@@ -94,6 +94,12 @@ stop() ->
     {ok, pid()} | {error, any()}.
 start(_StartType, _StartArgs) ->
     Config = application:get_all_env(?MODULE),
+    % Hack to force load the module
+    % Since it is never referenced directly
+    % It doesn't get loaded
+    % See more: https://erlang.org/doc/system_principles/system_principles.html#code_loading
+    % Assumably, the problem only arises during tests
+    code:load_file(mg_storage_memory),
     mg_utils_supervisor_wrapper:start_link(
         {local, ?MODULE},
         #{strategy => rest_for_one},
