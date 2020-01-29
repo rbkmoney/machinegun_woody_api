@@ -1,5 +1,5 @@
 %%%
-%%% Copyright 2020 RBKmoney
+%%% Copyright 2017 RBKmoney
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -59,7 +59,8 @@
     retries                    := mg_machine:retry_opt(),
     schedulers                 := mg_machine:schedulers_opt(),
     default_processing_timeout := timeout(),
-    suicide_probability        => mg_machine:suicide_probability()
+    suicide_probability        => mg_machine:suicide_probability(),
+    event_stash_size           := non_neg_integer()
 }.
 -type event_sink_ns() :: #{
     default_processing_timeout := timeout(),
@@ -92,12 +93,6 @@ stop() ->
 -spec start(normal, any()) ->
     {ok, pid()} | {error, any()}.
 start(_StartType, _StartArgs) ->
-    %% The following line is there to force-load module mg_storage_memory
-    %% as for yet unknown reasons it doesn't get loaded in runtime by default.
-    %% Supposingly it is caused by the fact, that this module is never referenced directly
-    %% thus it could be "optimized"by the VM.
-    _ = mg_storage_memory:child_spec(undefined, load_module), % TODO Find a hack-free way to avoid this weird issue
-
     Config = application:get_all_env(?MODULE),
     mg_utils_supervisor_wrapper:start_link(
         {local, ?MODULE},
@@ -216,7 +211,8 @@ events_machine_options(NS, Config) ->
         events_storage             => EventsStorage,
         event_sinks                => EventSinks,
         pulse                      => pulse(),
-        default_processing_timeout => maps:get(default_processing_timeout, NSConfigs)
+        default_processing_timeout => maps:get(default_processing_timeout, NSConfigs),
+        event_stash_size           => maps:get(event_stash_size, NSConfigs, 0)
     }.
 
 -spec event_sink_options(mg_events_sink:handler(), config()) ->
