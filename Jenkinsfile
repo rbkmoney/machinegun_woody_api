@@ -55,25 +55,8 @@ build('wg_woody_api', 'docker-host', finalHook) {
       sh "make wc_test_configurator"
       sh "make wdeps_test"
     }
-    runStage('make release') {
-      withGithubPrivkey{
-        sh "make wc_release"
-      }
-    }
-    runStage('build image') {
-      sh "make build_image"
-    }
-
-    try {
-      if (masterlikeBranch()) {
-        runStage('push image') {
-          sh "make push_image"
-        }
-      }
-    } finally {
-      runStage('rm local image') {
-        sh 'make rm_local_image'
-      }
+    runStage('rm local image') {
+      sh 'make rm_local_image'
     }
   }
 }

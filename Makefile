@@ -42,8 +42,6 @@ CALL_ANYWHERE := \
 	lint \
 	dialyze \
 	start \
-	devrel \
-	release \
 	clean \
 	distclean \
 	test_configurator \
@@ -79,12 +77,6 @@ lint:
 
 dialyze:
 	$(REBAR) dialyzer
-
-devrel: submodules
-	$(REBAR) release
-
-release:
-	$(REBAR) as prod release
 
 clean:
 	$(REBAR) clean
