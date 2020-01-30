@@ -54,8 +54,5 @@ build('wg_woody_api', 'docker-host', finalHook) {
     runStage('test') {
       sh "make wdeps_test"
     }
-    runStage('rm local image') {
-      sh 'make rm_local_image'
-    }
   }
 }
