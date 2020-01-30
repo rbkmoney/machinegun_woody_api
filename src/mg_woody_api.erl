@@ -99,7 +99,7 @@ start(_StartType, _StartArgs) ->
     % It doesn't get loaded
     % See more: https://erlang.org/doc/system_principles/system_principles.html#code_loading
     % Assumably, the problem only arises during tests
-    code:load_file(mg_storage_memory),
+    _ = code:load_file(mg_storage_memory),
     mg_utils_supervisor_wrapper:start_link(
         {local, ?MODULE},
         #{strategy => rest_for_one},
