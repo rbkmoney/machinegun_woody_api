@@ -16,7 +16,7 @@
 
 -module(mg_woody_api_pulse_metric).
 
--include_lib("mg/include/pulse.hrl").
+-include_lib("machinegun_core/include/pulse.hrl").
 -include_lib("include/mg_woody_api/pulse.hrl").
 
 -export([handle_beat/2]).

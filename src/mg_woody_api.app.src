@@ -18,7 +18,6 @@
     {description, "Machinegun FSM processor Woody API"},
     {vsn, "1"},
     {registered, []},
-    {mod, {mg_woody_api, []}},
     {applications, [
         kernel,
         stdlib,
@@ -31,7 +30,7 @@
         cg_mon,
         how_are_you,
         erl_health,
-        mg
+        machinegun_core
     ]},
     {env, []},
     {modules, []},

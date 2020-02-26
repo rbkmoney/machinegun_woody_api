@@ -32,7 +32,7 @@
 %% Types
 
 -type options() :: #{
-    namespace := mg:ns(),
+    namespace := machinegun_core:ns(),
     type := storage_type(),
     interval => timeout()
 }.
@@ -43,7 +43,7 @@
 
 -record(state, {
     interval :: timeout(),
-    namespace :: mg:ns(),
+    namespace :: machinegun_core:ns(),
     storage_type :: storage_type(),
     storage :: storage()
 }).
@@ -145,7 +145,7 @@ rebuild_key(Key) ->
     [mg | Key].
 
 -spec try_decode_pool_name(binary()) ->
-    {ok, {mg:ns(), storage_type()}} | error.
+    {ok, {machinegun_core:ns(), storage_type()}} | error.
 try_decode_pool_name(PoolName) ->
     %% TODO: Try to pass options through `pooler` metric mod option instead of pool name parsing
     try erlang:binary_to_term(base64:decode(PoolName), [safe]) of

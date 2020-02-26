@@ -83,6 +83,7 @@ init_per_group(with_gproc, C) ->
 init_per_group(with_consuela, C) ->
     [{registry, {mg_procreg_consuela, #{}}} | C];
 init_per_group(base, C) ->
+    Config = mg_woody_api_config(C),
     Apps = mg_ct_helper:start_applications([
         {how_are_you, [
             {metrics_publishers, [mg_test_hay_publisher]},
@@ -90,9 +91,10 @@ init_per_group(base, C) ->
                 hay_vm_handler
             ]}
         ]},
-        {mg_woody_api, mg_woody_api_config(C)}
+        {mg_woody_api, Config}
     ]),
-
+    % This mode is never referenced directly and need to be force-loaded
+    _ = code:load_file(mg_storage_memory),
     {ok, ProcessorPid} = mg_test_processor:start(
         {0, 0, 0, 0}, 8023,
         genlib_map:compact(#{
@@ -100,7 +102,8 @@ init_per_group(base, C) ->
                 signal => fun default_signal_handler/1,
                 call   => fun default_call_handler/1
             }}
-        })
+        }),
+        Config
     ),
 
     [

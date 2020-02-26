@@ -41,11 +41,13 @@ all() ->
 -spec init_per_suite(config()) ->
     config().
 init_per_suite(C) ->
+    Config = mg_woody_api_config(C),
     Apps = mg_ct_helper:start_applications([
         {hackney      , [{use_default_pool, false}]},
-        {mg_woody_api , mg_woody_api_config(C)}
+        how_are_you,
+        {mg_woody_api, Config}
     ]),
-
+    _ = code:load_file(mg_storage_memory),
     CallFunc =
         fun({Args, _Machine}) ->
             case Args of
@@ -67,7 +69,8 @@ init_per_suite(C) ->
         #{processor => {"/processor", #{
             signal => SignalFunc,
             call   => CallFunc
-        }}}
+        }}},
+        Config
     ),
 
     [
@@ -137,7 +140,7 @@ stress_test(C) ->
     ok = timer:sleep(TestTimeout),
     ok = mg_ct_helper:stop_wait_all(Processes, shutdown, 2000).
 
--spec stress_test_start_processes(term(), mg:id()) ->
+-spec stress_test_start_processes(term(), machinegun_core:id()) ->
     _.
 stress_test_start_processes(C, ID) ->
     Pid =
@@ -153,19 +156,19 @@ stress_test_start_processes(C, ID) ->
 %%
 %% utils
 %%
--spec start_machine(config(), mg:id()) ->
+-spec start_machine(config(), machinegun_core:id()) ->
     _.
 start_machine(C, ID) ->
     mg_automaton_client:start(automaton_options(C), ID, ID).
 
--spec create(config(), mg:id()) ->
+-spec create(config(), machinegun_core:id()) ->
     _.
 create(C, ID) ->
     create_event(<<"event">>, C, ID),
     timer:sleep(1000),
     create(C, ID).
 
--spec create_event(binary(), config(), mg:id()) ->
+-spec create_event(binary(), config(), machinegun_core:id()) ->
     _.
 create_event(Event, C, ID) ->
     Event = mg_automaton_client:call(automaton_options(C), {id, ID}, Event).

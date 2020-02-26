@@ -29,10 +29,10 @@
 %% API
 %%
 -type ctx() :: #{
-    namespace := mg:ns() | undefined,
+    namespace := machinegun_core:ns() | undefined,
     machine_ref := mg_events_machine:ref(),
     deadline := mg_deadline:deadline(),
-    request_context := mg:request_context()
+    request_context := machinegun_core:request_context()
 }.
 -type pulse() :: mg_pulse:handler().
 

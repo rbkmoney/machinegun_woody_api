@@ -109,22 +109,26 @@ end_per_suite(C) ->
 -spec init_per_group(group_name(), config()) ->
     config().
 init_per_group(Name = legacy_activities, C0) ->
-    C1 = start_mg_woody_api(Name, C0),
+    Config = mg_woody_api_config(Name, C0),
+    C1 = start_mg_woody_api(Name, Config, C0),
     {ok, ProcessorPid} = mg_test_processor:start(
         {0, 0, 0, 0}, 8023,
         genlib_map:compact(#{
             processor  => {"/processor", #{call => fun legacy_call_handler/1}}
-        })
+        }),
+        Config
     ),
     [{processor_pid, ProcessorPid} | C1];
 init_per_group(Name = modern_activities, C0) ->
-    C1 = start_mg_woody_api(Name, C0),
+    Config = mg_woody_api_config(Name, C0),
+    C1 = start_mg_woody_api(Name, Config, Config),
     {ok, ProcessorPid} = mg_test_processor:start(
         {0, 0, 0, 0}, 8023,
         genlib_map:compact(#{
             processor  => {"/processor", #{call => fun modern_call_handler/1}},
             modernizer => {"/modernizer", #{modernize => fun modernize_handler/1}}
-        })
+        }),
+        Config
     ),
     [{processor_pid, ProcessorPid} | C1];
 init_per_group(activities, C) ->
@@ -141,13 +145,26 @@ end_per_group(Name, C) when
 end_per_group(_, _C) ->
     ok.
 
--spec start_mg_woody_api(group_name(), config()) ->
+-spec start_mg_woody_api(group_name(), any(), config()) ->
     config().
-start_mg_woody_api(Name, C) ->
+start_mg_woody_api(Name, Config, C) ->
+    Apps = mg_ct_helper:start_applications([{mg_woody_api, Config}]),
+    [
+        {group_name        , Name},
+        {group_apps        , Apps},
+        {automaton_options , #{
+            url            => "http://localhost:8022",
+            ns             => ?NS
+        }} | C
+    ].
+
+-spec mg_woody_api_config(atom(), config()) ->
+    list().
+mg_woody_api_config(Name, C) ->
     Scheduler = #{
         scan_interval => #{continue => 100, completed => 15000}
     },
-    Config = [
+    [
         {woody_server, #{
             ip       => {0,0,0,0,0,0,0,0},
             port     => 8022,
@@ -189,15 +206,6 @@ start_mg_woody_api(Name, C) ->
             storage => mg_storage_memory,
             default_processing_timeout => 5000
         }}
-    ],
-    Apps = mg_ct_helper:start_applications([{mg_woody_api, Config}]),
-    [
-        {group_name        , Name},
-        {group_apps        , Apps},
-        {automaton_options , #{
-            url            => "http://localhost:8022",
-            ns             => ?NS
-        }} | C
     ].
 
 %%

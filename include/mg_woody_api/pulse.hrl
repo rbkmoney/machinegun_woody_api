@@ -1,8 +1,8 @@
 
 -record(woody_request_handle_error, {
-    namespace :: mg:ns(),
+    namespace :: machinegun_core:ns(),
     machine_ref :: mg_events_machine:ref(),
-    request_context :: mg:request_context(),
+    request_context :: machinegun_core:request_context(),
     deadline :: mg_deadline:deadline(),
     exception :: mg_utils:exception()
 }).

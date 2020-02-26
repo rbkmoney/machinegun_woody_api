@@ -228,11 +228,13 @@ init_per_group(_, C) ->
     config().
 init_per_group(C) ->
     %% TODO сделать нормальную генерацию урлов
+    Config = mg_woody_api_config(C),
     Apps = mg_ct_helper:start_applications([
         brod,
-        {mg_woody_api, mg_woody_api_config(C)}
+        {mg_woody_api, Config}
     ]),
-
+    % This mode is never referenced directly and need to be force-loaded
+    _ = code:load_file(mg_storage_memory),
     {ok, ProcessorPid} = mg_test_processor:start(
         {0, 0, 0, 0}, 8023,
         genlib_map:compact(#{
@@ -243,11 +245,12 @@ init_per_group(C) ->
                     repair => fun default_repair_handler/1
                 }
             }
-        })
+        }),
+        Config
     ),
 
     [
-        {apps              , Apps                             },
+        {apps              , Apps                  },
         {automaton_options , #{
             url            => "http://localhost:8022",
             ns             => ?NS,
@@ -490,7 +493,7 @@ history_changed_atomically(C) ->
     AtomicResult = {HistorySeen, AuxState},
     ?assertEqual(#{}, maps:without([undefined, AtomicResult], Groups)).
 
--spec get_simple_history(config(), mg:id(), mg_events:history_range()) ->
+-spec get_simple_history(config(), machinegun_core:id(), mg_events:history_range()) ->
     {[{mg_events:id(), mg_storage:opaque()}], mg_storage:opaque()}.
 get_simple_history(C, ID, HRange) ->
     try mg_automaton_client:get_machine(automaton_options(C), {id, ID}, HRange) of
@@ -767,18 +770,32 @@ config_with_multiple_event_sinks(_C) ->
             default_processing_timeout => 5000
         }}
     ],
-    Apps = mg_ct_helper:start_applications([{mg_woody_api, Config}]),
-    ok = mg_ct_helper:stop_applications(Apps).
+    Apps = mg_ct_helper:start_applications([
+        brod,
+        woody,
+        how_are_you
+    ]),
+    application:load(mg_woody_api),
+    _ = code:load_file(mg_storage_memory),
+    _ = code:load_file(mg_queue_timer),
+    _ = code:load_file(mg_queue_interrupted),
+    {ok, _Pid} = mg_utils_supervisor_wrapper:start_link(
+        {local, mg_sup_does_nothing},
+        #{strategy => rest_for_one},
+        mg_woody_api:child_specs(Config)
+    ),
+    % Apps = mg_ct_helper:start_applications([{mg_woody_api, Config}]),
+    ok = mg_ct_helper:stop_applications([Apps]).
 
 %%
 %% utils
 %%
--spec start_machine(config(), mg:id()) ->
+-spec start_machine(config(), machinegun_core:id()) ->
     ok.
 start_machine(C, ID) ->
     start_machine(C, ID, ID).
 
--spec start_machine(config(), mg:id(), mg_event_machine:args()) ->
+-spec start_machine(config(), machinegun_core:id(), mg_event_machine:args()) ->
     ok.
 start_machine(C, ID, Args) ->
     case catch mg_automaton_client:start(automaton_options(C), ID, Args) of
@@ -788,12 +805,12 @@ start_machine(C, ID, Args) ->
             ok
     end.
 
--spec create_event(mg_storage:opaque(), config(), mg:id()) ->
+-spec create_event(mg_storage:opaque(), config(), machinegun_core:id()) ->
     _.
 create_event(Event, C, ID) ->
     mg_automaton_client:call(automaton_options(C), {id, ID}, Event).
 
--spec create_events(integer(), config(), mg:id()) -> _.
+-spec create_events(integer(), config(), machinegun_core:id()) -> _.
 create_events(N, C, ID) ->
     lists:foreach(
         fun(I) ->

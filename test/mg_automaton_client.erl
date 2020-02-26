@@ -40,16 +40,16 @@
 %%
 -type options() :: #{
     url := URL::string(),
-    ns  := mg:ns(),
+    ns  := machinegun_core:ns(),
     retry_strategy => genlib_retry:strategy(),
     transport_opts => woody_client_thrift_http_transport:options()
 }.
 
--spec start(options(), mg:id(), mg_storage:opaque()) -> ok.
+-spec start(options(), machinegun_core:id(), mg_storage:opaque()) -> ok.
 start(Options, ID, Args) ->
     start(Options, ID, Args, undefined).
 
--spec start(options(), mg:id(), mg_storage:opaque(), mg_deadline:deadline()) -> ok.
+-spec start(options(), machinegun_core:id(), mg_storage:opaque(), mg_deadline:deadline()) -> ok.
 start(#{ns := NS} = Options, ID, Args, Deadline) ->
     ok = call_service(Options, 'Start', [pack(ns, NS), pack(id, ID), pack(args, Args)], Deadline).
 
@@ -70,11 +70,11 @@ simple_repair(Options, Ref) ->
 simple_repair(#{ns := NS} = Options, Ref, Deadline) ->
     ok = call_service(Options, 'SimpleRepair', [pack(ns, NS), pack(ref, Ref)], Deadline).
 
--spec remove(options(), mg:id()) -> ok.
+-spec remove(options(), machinegun_core:id()) -> ok.
 remove(Options, ID) ->
     remove(Options, ID, undefined).
 
--spec remove(options(), mg:id(), mg_deadline:deadline()) -> ok.
+-spec remove(options(), machinegun_core:id(), mg_deadline:deadline()) -> ok.
 remove(#{ns := NS} = Options, ID, Deadline) ->
     ok = call_service(Options, 'Remove', [pack(ns, NS), pack(id, ID)], Deadline).
 
@@ -112,12 +112,12 @@ modernize(#{ns := NS} = Options, Ref, Range) ->
 %%
 %% local
 %%
--spec machine_desc(mg:ns(), mg_events_machine:ref()) ->
+-spec machine_desc(machinegun_core:ns(), mg_events_machine:ref()) ->
     _.
 machine_desc(NS, Ref) ->
     machine_desc(NS, Ref, {undefined, undefined, forward}).
 
--spec machine_desc(mg:ns(), mg_events_machine:ref(), mg_events:history_range()) ->
+-spec machine_desc(machinegun_core:ns(), mg_events_machine:ref(), mg_events:history_range()) ->
     _.
 machine_desc(NS, Ref, HRange) ->
     pack(machine_descriptor, {NS, Ref, HRange}).

@@ -30,7 +30,7 @@
 %%
 %% API
 %%
--type options() :: {[mg:id()], mg_events_sink_machine:ns_options()}.
+-type options() :: {[machinegun_core:id()], mg_events_sink_machine:ns_options()}.
 
 -spec handler(options()) ->
     mg_utils:woody_handler().
@@ -67,7 +67,7 @@ handle_function('GetHistory', [EventSinkID, Range], WoodyContext, {AvaliableEven
 %% events_sink events encoder
 %%
 
--spec serialize(mg:ns(), mg:id(), mg_events:event()) ->
+-spec serialize(machinegun_core:ns(), machinegun_core:id(), mg_events:event()) ->
     iodata().
 
 serialize(SourceNS, SourceID, Event) ->
@@ -99,7 +99,7 @@ serialize(SourceNS, SourceID, Event) ->
 %% Internals
 %%
 
--spec check_event_sink([mg:id()], mg:id()) ->
+-spec check_event_sink([machinegun_core:id()], machinegun_core:id()) ->
     ok | no_return().
 check_event_sink(AvaliableEventSinks, EventSinkID) ->
     case lists:member(EventSinkID, AvaliableEventSinks) of

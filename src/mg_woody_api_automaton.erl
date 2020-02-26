@@ -30,7 +30,7 @@
 %%
 %% API
 %%
--type options() :: #{mg:ns() => ns_options()}.
+-type options() :: #{machinegun_core:ns() => ns_options()}.
 -type ns_options() :: #{
     machine    := mg_events_machine:options(),
     modernizer => mg_events_modernizer:options()
@@ -169,12 +169,12 @@ handle_function('Modernize', [MachineDesc], WoodyContext, Options) ->
 %%
 %% local
 %%
--spec get_machine_options(mg:ns(), options()) ->
+-spec get_machine_options(machinegun_core:ns(), options()) ->
     mg_events_machine:options().
 get_machine_options(Namespace, Options) ->
     maps:get(machine, get_ns_options(Namespace, Options)).
 
--spec get_ns_options(mg:ns(), options()) ->
+-spec get_ns_options(machinegun_core:ns(), options()) ->
     ns_options().
 get_ns_options(Namespace, Options) ->
     try
@@ -184,7 +184,7 @@ get_ns_options(Namespace, Options) ->
             throw({logic, namespace_not_found})
     end.
 
--spec pulse(mg:ns(), options()) ->
+-spec pulse(machinegun_core:ns(), options()) ->
     mg_pulse:handler().
 pulse(Namespace, Options) ->
     try get_machine_options(Namespace, Options) of
@@ -194,13 +194,13 @@ pulse(Namespace, Options) ->
         undefined
     end.
 
--spec get_deadline(mg:ns(), woody_context:ctx(), options()) ->
+-spec get_deadline(machinegun_core:ns(), woody_context:ctx(), options()) ->
     mg_deadline:deadline().
 get_deadline(Namespace, WoodyContext, Options) ->
     DefaultTimeout = default_processing_timeout(Namespace, Options),
     mg_woody_api_utils:get_deadline(WoodyContext, mg_deadline:from_timeout(DefaultTimeout)).
 
--spec default_processing_timeout(mg:ns(), options()) ->
+-spec default_processing_timeout(machinegun_core:ns(), options()) ->
     timeout().
 default_processing_timeout(Namespace, Options) ->
     try get_machine_options(Namespace, Options) of

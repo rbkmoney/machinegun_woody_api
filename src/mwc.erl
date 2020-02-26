@@ -89,8 +89,8 @@ resume_interrupted_one(Namespace, ID) ->
 kill(Namespace, ID) ->
     ok = mg_workers_manager:brutal_kill(mg_machine:manager_options(m_opts(Namespace)), id(ID)).
 
--spec get_failed_machines(mg:ns()) ->
-    [{mg:id(), Reason::term()}].
+-spec get_failed_machines(machinegun_core:ns()) ->
+    [{machinegun_core:id(), Reason::term()}].
 get_failed_machines(Namespace) ->
     Options = m_opts(Namespace),
     [
@@ -137,11 +137,11 @@ ns_config(Namespace) ->
     maps:get(ns(Namespace), genlib_app:env(mg_woody_api, namespaces)).
 
 -spec ns(scalar()) ->
-    mg:ns().
+    machinegun_core:ns().
 ns(Namespace) ->
     genlib:to_binary(Namespace).
 
 -spec id(scalar()) ->
-    mg:id().
+    machinegun_core:id().
 id(ID) ->
     genlib:to_binary(ID).

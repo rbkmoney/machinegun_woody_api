@@ -16,8 +16,8 @@
 
 -module(mg_test_processor).
 
--export([start/3]).
--export([start_link/3]).
+-export([start/4]).
+-export([start_link/4]).
 -export([default_result/2]).
 
 %% processor handlers
@@ -62,10 +62,10 @@
 %%
 %% API
 %%
--spec start(host_address(), integer(), options()) ->
+-spec start(host_address(), integer(), options(), any()) ->
     mg_utils:gen_start_ret().
-start(Host, Port, Options) ->
-    case start_link(Host, Port, Options) of
+start(Host, Port, Options, Config) ->
+    case start_link(Host, Port, Options, Config) of
         {ok, ProcessorPid} ->
             true = erlang:unlink(ProcessorPid),
             {ok, ProcessorPid};
@@ -73,12 +73,11 @@ start(Host, Port, Options) ->
             ErrorOrIgnore
     end.
 
--spec start_link(host_address(), integer(), options()) ->
+-spec start_link(host_address(), integer(), options(), any()) ->
     mg_utils:gen_start_ret().
-start_link(Host, Port, Options) ->
+start_link(Host, Port, Options, Config) ->
     Flags = #{strategy => one_for_all},
-    ChildsSpecs = [
-        woody_server:child_spec(
+    Woo = woody_server:child_spec(
             ?MODULE,
             #{
                 ip            => Host,
@@ -94,8 +93,9 @@ start_link(Host, Port, Options) ->
                     Options
                 ))
             }
-        )
-    ],
+    ),
+    ChildsSpecs = [Woo | mg_woody_api:child_specs(Config)],
+    ok = supervisor:check_childspecs(mg_woody_api:child_specs(Config)),
     mg_utils_supervisor_wrapper:start_link(Flags, ChildsSpecs).
 
 %%

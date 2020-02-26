@@ -17,7 +17,7 @@
 -module(mg_metric_SUITE).
 -include_lib("common_test/include/ct.hrl").
 -include_lib("stdlib/include/assert.hrl").
--include_lib("mg/include/pulse.hrl").
+-include_lib("machinegun_core/include/pulse.hrl").
 
 %% tests descriptions
 -export([all             /0]).
@@ -61,13 +61,14 @@ groups() ->
 -spec init_per_suite(config()) ->
     config().
 init_per_suite(C) ->
+    Config = mg_woody_api_config(C),
     Apps = mg_ct_helper:start_applications([
         gproc,
         {how_are_you, [
             {metrics_publishers, []},
             {metrics_handlers, []}
         ]},
-        {mg_woody_api, mg_woody_api_config(C)}
+        {mg_woody_api, Config}
     ]),
 
     [

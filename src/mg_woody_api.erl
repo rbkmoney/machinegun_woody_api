@@ -23,17 +23,11 @@
 -export_type([config/0]).
 
 %% API
--export([start/0]).
--export([stop /0]).
+-export([child_specs/1]).
 
 %%
 -export([events_machine_options/2]).
 -export([machine_options       /2]).
-
-%% application callbacks
--behaviour(application).
--export([start/2]).
--export([stop /1]).
 
 %%
 %% API
@@ -70,54 +64,24 @@
 -type config_element() ::
       {woody_server   , woody_server()                 }
     | {health_check   , erl_health:check()             }
-    | {namespaces     , #{mg:ns() => events_machines()}}
+    | {namespaces     , #{machinegun_core:ns() => events_machines()}}
     | {event_sink_ns  , event_sink_ns()                }
 .
 -type config() :: [config_element()].
 
 -define(EVENT_SINK_NS, <<"_event_sinks">>).
 
--spec start() ->
-    {ok, _}.
-start() ->
-    application:ensure_all_started(?MODULE).
-
--spec stop() ->
-    ok.
-stop() ->
-    application:stop(?MODULE).
-
-%%
-%% Application callbacks
-%%
--spec start(normal, any()) ->
-    {ok, pid()} | {error, any()}.
-start(_StartType, _StartArgs) ->
-    Config = application:get_all_env(?MODULE),
-    % Hack to force load the module
-    % Since it is never referenced directly
-    % It doesn't get loaded
-    % See more: https://erlang.org/doc/system_principles/system_principles.html#code_loading
-    % Assumably, the problem only arises during tests
-    _ = code:load_file(mg_storage_memory),
-    mg_utils_supervisor_wrapper:start_link(
-        {local, ?MODULE},
-        #{strategy => rest_for_one},
-        quotas_child_specs(Config, quota)
-        ++
-        [event_sink_ns_child_spec(Config, event_sink)]
-        ++
-        events_machines_child_specs(Config)
-        ++
-        [woody_server_child_spec(Config, woody_server)]
-        ++
-        [woody_metrics_handler_childspec()]
-    ).
-
--spec stop(any()) ->
-    ok.
-stop(_State) ->
-    ok.
+-spec child_specs(config()) -> [supervisor:child_spec()].
+child_specs(Config) ->
+    quotas_child_specs(Config, quota)
+    ++
+    [event_sink_ns_child_spec(Config, event_sink)]
+    ++
+    events_machines_child_specs(Config)
+    ++
+    [woody_server_child_spec(Config, woody_server)]
+    ++
+    [woody_metrics_handler_childspec()].
 
 %%
 %% local
@@ -198,7 +162,7 @@ api_automaton_options(Config) ->
         NSs
     ).
 
--spec events_machine_options(mg:ns(), config()) ->
+-spec events_machine_options(machinegun_core:ns(), config()) ->
     mg_events_machine:options().
 events_machine_options(NS, Config) ->
     NSs = proplists:get_value(namespaces, Config),
@@ -247,7 +211,7 @@ event_sink_namespace_options(Config) ->
         worker           => worker_manager_options(EventSinkNS)
     }.
 
--spec tags_options(mg:ns(), events_machines()) ->
+-spec tags_options(machinegun_core:ns(), events_machines()) ->
     mg_machine_tags:options().
 tags_options(NS, #{retries := Retries, storage := Storage} = Config) ->
     TagsNS = mg_utils:concatenate_namespaces(NS, <<"tags">>),
@@ -261,7 +225,7 @@ tags_options(NS, #{retries := Retries, storage := Storage} = Config) ->
         retries   => Retries
     }.
 
--spec machine_options(mg:ns(), events_machines()) ->
+-spec machine_options(machinegun_core:ns(), events_machines()) ->
     mg_machine:options().
 machine_options(NS, Config) ->
     #{storage := Storage} = Config,
@@ -316,7 +280,7 @@ api_event_sink_options(Config) ->
     {EventSinkMachines, event_sink_namespace_options(Config)}.
 
 -spec collect_event_sink_machines(config()) ->
-    [mg:id()].
+    [machinegun_core:id()].
 collect_event_sink_machines(Config) ->
     NSs = proplists:get_value(namespaces, Config),
     NSConfigs = maps:values(NSs),
@@ -326,27 +290,27 @@ collect_event_sink_machines(Config) ->
     ]),
     ordsets:to_list(EventSinks).
 
--spec sub_storage_options(mg:ns(), mg_machine:storage_options()) ->
+-spec sub_storage_options(machinegun_core:ns(), mg_machine:storage_options()) ->
     mg_machine:storage_options().
 sub_storage_options(SubNS, Storage0) ->
     Storage1 = mg_utils:separate_mod_opts(Storage0, #{}),
     Storage2 = add_bucket_postfix(SubNS, Storage1),
     Storage2.
 
--spec add_bucket_postfix(mg:ns(), mg_storage:options()) ->
+-spec add_bucket_postfix(machinegun_core:ns(), mg_storage:options()) ->
     mg_storage:options().
 add_bucket_postfix(_, {mg_storage_memory, _} = Storage) ->
     Storage;
 add_bucket_postfix(SubNS, {mg_storage_riak, #{bucket := Bucket} = Options}) ->
     {mg_storage_riak, Options#{bucket := mg_utils:concatenate_namespaces(Bucket, SubNS)}}.
 
--spec add_storage_metrics(mg:ns(), _type, mg_machine:storage_options()) ->
+-spec add_storage_metrics(machinegun_core:ns(), _type, mg_machine:storage_options()) ->
     mg_machine:storage_options().
 add_storage_metrics(NS, Type, Storage0) ->
     Storage1 = mg_utils:separate_mod_opts(Storage0, #{}),
     do_add_storage_metrics(NS, Type, Storage1).
 
--spec do_add_storage_metrics(mg:ns(), atom(), mg_machine:storage_options()) ->
+-spec do_add_storage_metrics(machinegun_core:ns(), atom(), mg_machine:storage_options()) ->
     mg_machine:storage_options().
 do_add_storage_metrics(_NS, _Type, {mg_storage_memory, _} = Storage) ->
     Storage;

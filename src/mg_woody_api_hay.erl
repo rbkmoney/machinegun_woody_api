@@ -36,11 +36,11 @@
 
 -record(state, {
     interval :: timeout(),
-    namespace :: mg:ns(),
+    namespace :: machinegun_core:ns(),
     registry :: mg_procreg:options()
 }).
 -type state() :: #state{}.
--type worker() :: {mg:ns(), mg:id(), pid()}.
+-type worker() :: {machinegun_core:ns(), machinegun_core:id(), pid()}.
 -type metric() :: how_are_you:metric().
 -type metric_key() :: how_are_you:metric_key().
 -type metric_value() :: how_are_you:metric_value().
