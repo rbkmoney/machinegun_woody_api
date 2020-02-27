@@ -22,7 +22,7 @@ def finalHook = {
   }
 }
 
-build('wg_woody_api', 'docker-host', finalHook) {
+build('mg_woody_api', 'docker-host', finalHook) {
   checkoutRepo()
   loadBuildUtils()
 
