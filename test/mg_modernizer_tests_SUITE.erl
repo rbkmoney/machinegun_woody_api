@@ -161,9 +161,6 @@ start_mg_woody_api(Name, Config, C) ->
 -spec mg_woody_api_config(atom(), config()) ->
     list().
 mg_woody_api_config(Name, C) ->
-    Scheduler = #{
-        scan_interval => #{continue => 100, completed => 15000}
-    },
     [
         {woody_server, #{
             ip       => {0,0,0,0,0,0,0,0},
@@ -183,9 +180,7 @@ mg_woody_api_config(Name, C) ->
                     },
                     default_processing_timeout => 5000,
                     schedulers => #{
-                        timers         => Scheduler,
-                        timers_retries => Scheduler,
-                        overseer       => Scheduler
+                        timers => #{}
                     },
                     retries => #{}
                 },

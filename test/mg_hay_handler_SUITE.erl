@@ -130,9 +130,6 @@ end_per_group(_, C) ->
 -spec mg_woody_api_config(config()) ->
     list().
 mg_woody_api_config(C) ->
-    Scheduler = #{
-        scan_interval => #{continue => 100, completed => 15000}
-    },
     [
         {woody_server, #{ip => {0,0,0,0,0,0,0,0}, port => 8022, limits => #{}}},
         {namespaces, #{
@@ -148,9 +145,7 @@ mg_woody_api_config(C) ->
                 },
                 default_processing_timeout => 5000,
                 schedulers => #{
-                    timers         => Scheduler,
-                    timers_retries => Scheduler,
-                    overseer       => Scheduler
+                    timers => #{}
                 },
                 retries => #{
                     storage   => {exponential, {max_total_timeout, 1000}, 1, 10},
