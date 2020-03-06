@@ -86,7 +86,7 @@ init_per_group(base, C) ->
     Config = mg_woody_api_config(C),
     Apps = mg_ct_helper:start_applications([
         {how_are_you, [
-            {metrics_publishers, [mg_core_test_hay_publisher]},
+            {metrics_publishers, [mg_test_hay_publisher]},
             {metrics_handlers, [
                 hay_vm_handler
             ]}
@@ -209,4 +209,4 @@ content(Body) ->
 -spec get_metric(how_are_you:metric_key()) ->
     how_are_you:metric_value() | undefined.
 get_metric(Key) ->
-    mg_core_test_hay_publisher:lookup(Key).
+    mg_test_hay_publisher:lookup(Key).
