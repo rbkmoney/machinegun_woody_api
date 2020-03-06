@@ -19,7 +19,7 @@
        {ref,"3a80bb43a93eb0e7a940d19912d9e35c2cbe91f9"}},
   0},
  {<<"folsom">>,
-  {git,"git@github.com:folsom-project/folsom.git",
+  {git,"https://github.com/folsom-project/folsom",
        {ref,"9309bad9ffadeebbefe97521577c7480c7cfcd8a"}},
   1},
  {<<"genlib">>,
