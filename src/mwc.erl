@@ -47,26 +47,26 @@
 get_statuses_distrib(Namespace) ->
     [
         {StatusQuery, status_count(Namespace, StatusQuery)}
-        || StatusQuery <- mg_machine:all_statuses()
+        || StatusQuery <- mg_core_machine:all_statuses()
     ].
 
--spec status_count(scalar(), mg_machine:search_query()) ->
+-spec status_count(scalar(), mg_core_machine:search_query()) ->
     non_neg_integer().
 status_count(Namespace, StatusQuery) ->
-    Result = mg_machine:search(m_opts(Namespace), StatusQuery),
+    Result = mg_core_machine:search(m_opts(Namespace), StatusQuery),
     erlang:length(Result).
 
 % восстановление машины
 -spec simple_repair(scalar(), scalar()) ->
     woody_context:ctx() | no_return().
 simple_repair(Namespace, ID) ->
-    simple_repair(Namespace, ID, mg_deadline:default()).
+    simple_repair(Namespace, ID, mg_core_deadline:default()).
 
--spec simple_repair(scalar(), scalar(), mg_deadline:deadline()) ->
+-spec simple_repair(scalar(), scalar(), mg_core_deadline:deadline()) ->
     woody_context:ctx() | no_return().
 simple_repair(Namespace, ID, Deadline) ->
     WoodyCtx = woody_context:new(),
-    ok = mg_machine:simple_repair(
+    ok = mg_core_machine:simple_repair(
             m_opts(Namespace),
             id(ID),
             mg_woody_api_utils:woody_context_to_opaque(WoodyCtx),
@@ -77,49 +77,49 @@ simple_repair(Namespace, ID, Deadline) ->
 -spec resume_interrupted_one(scalar(), scalar()) ->
     ok | no_return().
 resume_interrupted_one(Namespace, ID) ->
-    ok = mg_machine:resume_interrupted(
+    ok = mg_core_machine:resume_interrupted(
         m_opts(Namespace),
         id(ID),
-        mg_deadline:from_timeout(5000)
+        mg_core_deadline:from_timeout(5000)
     ).
 
 % убийство машины
 -spec kill(scalar(), scalar()) ->
     ok.
 kill(Namespace, ID) ->
-    ok = mg_workers_manager:brutal_kill(mg_machine:manager_options(m_opts(Namespace)), id(ID)).
+    ok = mg_core_workers_manager:brutal_kill(mg_core_machine:manager_options(m_opts(Namespace)), id(ID)).
 
--spec get_failed_machines(machinegun_core:ns()) ->
-    [{machinegun_core:id(), Reason::term()}].
+-spec get_failed_machines(mg_core:ns()) ->
+    [{mg_core:id(), Reason::term()}].
 get_failed_machines(Namespace) ->
     Options = m_opts(Namespace),
     [
         {ID, Reason}
     ||
         {ID, {error, Reason, _}} <-
-            [{ID, mg_machine:get_status(Options, ID)} || ID <- mg_machine:search(Options, failed)]
+            [{ID, mg_core_machine:get_status(Options, ID)} || ID <- mg_core_machine:search(Options, failed)]
     ].
 
 % посмотреть стейт машины
 -spec get_machine(scalar(), scalar()) ->
-    mg_machine:machine_state().
+    mg_core_machine:machine_state().
 get_machine(Namespace, ID) ->
-    mg_machine:get(m_opts(Namespace), id(ID)).
+    mg_core_machine:get(m_opts(Namespace), id(ID)).
 
--spec get_events_machine(scalar(), mg_events_machine:ref()) ->
-    mg_events_machine:machine().
+-spec get_events_machine(scalar(), mg_core_events_machine:ref()) ->
+    mg_core_events_machine:machine().
 get_events_machine(Namespace, Ref) ->
     get_events_machine(Namespace, Ref, {undefined, undefined, forward}).
 
--spec get_events_machine(scalar(), mg_events_machine:ref(), mg_events:history_range()) ->
-    mg_events_machine:machine().
+-spec get_events_machine(scalar(), mg_core_events_machine:ref(), mg_core_events:history_range()) ->
+    mg_core_events_machine:machine().
 get_events_machine(Namespace, Ref, HRange) ->
-    mg_events_machine:get_machine(em_opts(Namespace), Ref, HRange).
+    mg_core_events_machine:get_machine(em_opts(Namespace), Ref, HRange).
 
 %%
 
 -spec em_opts(scalar()) ->
-    mg_events_machine:options().
+    mg_core_events_machine:options().
 em_opts(Namespace) ->
     mg_woody_api:events_machine_options(
         ns(Namespace),
@@ -127,7 +127,7 @@ em_opts(Namespace) ->
     ).
 
 -spec m_opts(scalar()) ->
-    mg_machine:options().
+    mg_core_machine:options().
 m_opts(Namespace) ->
     mg_woody_api:machine_options(ns(Namespace), ns_config(Namespace)).
 
@@ -137,11 +137,11 @@ ns_config(Namespace) ->
     maps:get(ns(Namespace), genlib_app:env(mg_woody_api, namespaces)).
 
 -spec ns(scalar()) ->
-    machinegun_core:ns().
+    mg_core:ns().
 ns(Namespace) ->
     genlib:to_binary(Namespace).
 
 -spec id(scalar()) ->
-    machinegun_core:id().
+    mg_core:id().
 id(ID) ->
     genlib:to_binary(ID).

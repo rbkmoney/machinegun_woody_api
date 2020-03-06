@@ -30,10 +30,10 @@
 %%
 %% API
 %%
--type options() :: {[machinegun_core:id()], mg_events_sink_machine:ns_options()}.
+-type options() :: {[mg_core:id()], mg_core_events_sink_machine:ns_options()}.
 
 -spec handler(options()) ->
-    mg_utils:woody_handler().
+    mg_woody_api_utils:woody_handler().
 handler(Options) ->
     {"/v1/event_sink", {{mg_proto_state_processing_thrift, 'EventSink'}, {?MODULE, Options}}}.
 
@@ -46,14 +46,14 @@ handler(Options) ->
 handle_function('GetHistory', [EventSinkID, Range], WoodyContext, {AvaliableEventSinks, Options}) ->
     ReqCtx = mg_woody_api_utils:woody_context_to_opaque(WoodyContext),
     DefaultTimeout = maps:get(default_processing_timeout, Options),
-    DefaultDeadline = mg_deadline:from_timeout(DefaultTimeout),
+    DefaultDeadline = mg_core_deadline:from_timeout(DefaultTimeout),
     Deadline = mg_woody_api_utils:get_deadline(WoodyContext, DefaultDeadline),
     SinkHistory =
         mg_woody_api_utils:handle_error(
             #{namespace => undefined, machine_ref => EventSinkID, request_context => ReqCtx, deadline => Deadline},
             fun() ->
                 _ = check_event_sink(AvaliableEventSinks, EventSinkID),
-                mg_events_sink_machine:get_history(
+                mg_core_events_sink_machine:get_history(
                     Options,
                     EventSinkID,
                     mg_woody_api_packer:unpack(history_range, Range)
@@ -67,7 +67,7 @@ handle_function('GetHistory', [EventSinkID, Range], WoodyContext, {AvaliableEven
 %% events_sink events encoder
 %%
 
--spec serialize(machinegun_core:ns(), machinegun_core:id(), mg_events:event()) ->
+-spec serialize(mg_core:ns(), mg_core:id(), mg_core_events:event()) ->
     iodata().
 
 serialize(SourceNS, SourceID, Event) ->
@@ -99,7 +99,7 @@ serialize(SourceNS, SourceID, Event) ->
 %% Internals
 %%
 
--spec check_event_sink([machinegun_core:id()], machinegun_core:id()) ->
+-spec check_event_sink([mg_core:id()], mg_core:id()) ->
     ok | no_return().
 check_event_sink(AvaliableEventSinks, EventSinkID) ->
     case lists:member(EventSinkID, AvaliableEventSinks) of
@@ -109,7 +109,7 @@ check_event_sink(AvaliableEventSinks, EventSinkID) ->
             throw({logic, event_sink_not_found})
     end.
 
--spec pulse(mg_events_sink_machine:ns_options()) ->
-    mg_pulse:handler().
+-spec pulse(mg_core_events_sink_machine:ns_options()) ->
+    mg_core_pulse:handler().
 pulse(#{pulse := Pulse}) ->
     Pulse.

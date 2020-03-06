@@ -79,14 +79,14 @@ end_per_suite(C) ->
 -spec init_per_group(group_name(), config()) ->
     config().
 init_per_group(with_gproc, C) ->
-    [{registry, mg_procreg_gproc} | C];
+    [{registry, mg_core_procreg_gproc} | C];
 init_per_group(with_consuela, C) ->
-    [{registry, {mg_procreg_consuela, #{}}} | C];
+    [{registry, {mg_core_procreg_consuela, #{}}} | C];
 init_per_group(base, C) ->
     Config = mg_woody_api_config(C),
     Apps = mg_ct_helper:start_applications([
         {how_are_you, [
-            {metrics_publishers, [mg_test_hay_publisher]},
+            {metrics_publishers, [mg_core_test_hay_publisher]},
             {metrics_handlers, [
                 hay_vm_handler
             ]}
@@ -94,7 +94,7 @@ init_per_group(base, C) ->
         {mg_woody_api, Config}
     ]),
     % This mode is never referenced directly and need to be force-loaded
-    _ = code:load_file(mg_storage_memory),
+    _ = code:load_file(mg_core_storage_memory),
     {ok, ProcessorPid} = mg_test_processor:start(
         {0, 0, 0, 0}, 8023,
         genlib_map:compact(#{
@@ -134,7 +134,7 @@ mg_woody_api_config(C) ->
         {woody_server, #{ip => {0,0,0,0,0,0,0,0}, port => 8022, limits => #{}}},
         {namespaces, #{
             ?NS => #{
-                storage    => mg_storage_memory,
+                storage    => mg_core_storage_memory,
                 processor  => #{
                     url            => <<"http://localhost:8023/processor">>,
                     transport_opts => #{pool => ns, max_connections => 100}
@@ -155,14 +155,14 @@ mg_woody_api_config(C) ->
             }
         }},
         {event_sink_ns, #{
-            storage => mg_storage_memory,
+            storage => mg_core_storage_memory,
             registry => registry(C),
             default_processing_timeout => 5000
         }}
     ].
 
 -spec registry(config()) ->
-    mg_procreg:options().
+    mg_core_procreg:options().
 registry(C) ->
     ?config(registry, C).
 
@@ -186,21 +186,21 @@ automaton_options(C) -> ?config(automaton_options, C).
 
 %% Processor utils
 
--spec default_signal_handler(mg_events_machine:signal_args()) -> mg_events_machine:signal_result().
+-spec default_signal_handler(mg_core_events_machine:signal_args()) -> mg_events_machine:signal_result().
 default_signal_handler({Args, _Machine}) ->
     mg_test_processor:default_result(signal, Args).
 
--spec default_call_handler(mg_events_machine:call_args()) -> mg_events_machine:call_result().
+-spec default_call_handler(mg_core_events_machine:call_args()) -> mg_events_machine:call_result().
 default_call_handler({Args, _Machine}) ->
     case Args of
         <<"foo">> -> {Args, {null(), [content(<<"bar">>)]}, #{}}
     end.
 
--spec null() -> mg_events:content().
+-spec null() -> mg_core_events:content().
 null() ->
     content(null).
 
--spec content(mg_storage:opaque()) -> mg_events:content().
+-spec content(mg_core_storage:opaque()) -> mg_core_events:content().
 content(Body) ->
     {#{format_version => 42}, Body}.
 
@@ -209,4 +209,4 @@ content(Body) ->
 -spec get_metric(how_are_you:metric_key()) ->
     how_are_you:metric_value() | undefined.
 get_metric(Key) ->
-    mg_test_hay_publisher:lookup(Key).
+    mg_core_test_hay_publisher:lookup(Key).

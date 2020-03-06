@@ -16,7 +16,7 @@
 
 -module(mg_ct_helper).
 
--define(CLIENT, mg_kafka_client).
+-define(CLIENT, mg_core_kafka_client).
 -define(BROKERS, [{"kafka1", 9092}, {"kafka2", 9092}, {"kafka3", 9092}]).
 
 -export([config/1]).
@@ -82,7 +82,7 @@ stop_applications(AppNames) ->
 
 %%
 
--spec assert_wait_expected(any(), function(), mg_retry:strategy()) ->
+-spec assert_wait_expected(any(), function(), mg_core_retry:strategy()) ->
     ok.
 
 assert_wait_expected(Expected, Fun, Strategy) when is_function(Fun, 0) ->
@@ -99,8 +99,8 @@ assert_wait_expected(Expected, Fun, Strategy) when is_function(Fun, 0) ->
             end
     end.
 
--spec build_storage(machinegun_core:ns(), mg_utils:mod_opts()) ->
-    mg_utils:mod_opts().
+-spec build_storage(mg_core:ns(), mg_core_utils:mod_opts()) ->
+    mg_core_utils:mod_opts().
 build_storage(NS, Module) when is_atom(Module) ->
     build_storage(NS, {Module, #{}});
 build_storage(NS, {Module, Options}) ->

@@ -25,16 +25,27 @@
 -export([get_deadline/2]).
 -export([set_deadline/2]).
 
+% woody
+-export_type([woody_handlers/0]).
+-export_type([woody_handler /0]).
+
 %%
 %% API
 %%
 -type ctx() :: #{
-    namespace := machinegun_core:ns() | undefined,
-    machine_ref := mg_events_machine:ref(),
-    deadline := mg_deadline:deadline(),
-    request_context := machinegun_core:request_context()
+    namespace := mg_core:ns() | undefined,
+    machine_ref := mg_core_events_machine:ref(),
+    deadline := mg_core_deadline:deadline(),
+    request_context := mg_core:request_context()
 }.
--type pulse() :: mg_pulse:handler().
+-type pulse() :: mg_core_pulse:handler().
+
+%%
+%% Woody
+%%
+-type woody_handlers() :: [woody_handler()].
+-type woody_handler () :: _.
+
 
 -spec handle_error(ctx(), fun(() -> R), pulse()) ->
     R.
@@ -44,7 +55,7 @@ handle_error(Ctx, F, Pulse) ->
     catch throw:Error:ST ->
         Exception = {throw, Error, ST},
         #{namespace := NS, machine_ref := Ref, request_context := ReqCtx, deadline := Deadline} = Ctx,
-        ok = mg_pulse:handle_beat(Pulse, #woody_request_handle_error{
+        ok = mg_core_pulse:handle_beat(Pulse, #woody_request_handle_error{
             namespace = NS,
             machine_ref = Ref,
             request_context = ReqCtx,
@@ -54,7 +65,7 @@ handle_error(Ctx, F, Pulse) ->
         handle_error(Error, ST)
     end.
 
--spec handle_error(mg_machine:thrown_error() | {logic, namespace_not_found}, [_StackItem]) ->
+-spec handle_error(mg_core_machine:thrown_error() | {logic, namespace_not_found}, [_StackItem]) ->
     no_return().
 handle_error({logic, Reason}, _ST) ->
     erlang:throw(handle_logic_error(Reason));
@@ -81,7 +92,7 @@ handle_logic_error({invalid_machine_id, _}) -> #mg_stateproc_MachineNotFound    
 %%
 %% packer to opaque
 %%
--spec opaque_to_woody_context(mg_storage:opaque()) ->
+-spec opaque_to_woody_context(mg_core_storage:opaque()) ->
     woody_context:ctx().
 opaque_to_woody_context([1, RPCID, ContextMeta]) ->
     #{
@@ -96,18 +107,18 @@ opaque_to_woody_context([1, RPCID]) ->
     }.
 
 -spec woody_context_to_opaque(woody_context:ctx()) ->
-    mg_storage:opaque().
+    mg_core_storage:opaque().
 woody_context_to_opaque(#{rpc_id := RPCID, meta := ContextMeta}) ->
     [1, woody_rpc_id_to_opaque(RPCID), ContextMeta];
 woody_context_to_opaque(#{rpc_id := RPCID}) ->
     [1, woody_rpc_id_to_opaque(RPCID)].
 
 -spec woody_rpc_id_to_opaque(woody:rpc_id()) ->
-    mg_storage:opaque().
+    mg_core_storage:opaque().
 woody_rpc_id_to_opaque(#{span_id := SpanID, trace_id := TraceID, parent_id := ParentID}) ->
     [SpanID, TraceID, ParentID].
 
--spec opaque_to_woody_rpc_id(mg_storage:opaque()) ->
+-spec opaque_to_woody_rpc_id(mg_core_storage:opaque()) ->
     woody:rpc_id().
 opaque_to_woody_rpc_id([SpanID, TraceID, ParentID]) ->
     #{span_id => SpanID, trace_id => TraceID, parent_id => ParentID}.
@@ -115,21 +126,21 @@ opaque_to_woody_rpc_id([SpanID, TraceID, ParentID]) ->
 %%
 %% Woody deadline utils
 %%
--spec get_deadline(woody_context:ctx(), mg_deadline:deadline()) ->
-    mg_deadline:deadline() | no_return().
+-spec get_deadline(woody_context:ctx(), mg_core_deadline:deadline()) ->
+    mg_core_deadline:deadline() | no_return().
 get_deadline(Context, Default) ->
     case woody_context:get_deadline(Context) of
         undefined ->
             Default;
         Deadline ->
             %% MG and woody deadline formats are different
-            mg_deadline:from_unixtime_ms(woody_deadline:to_unixtime_ms(Deadline))
+            mg_core_deadline:from_unixtime_ms(woody_deadline:to_unixtime_ms(Deadline))
     end.
 
--spec set_deadline(mg_deadline:deadline(), woody_context:ctx()) ->
+-spec set_deadline(mg_core_deadline:deadline(), woody_context:ctx()) ->
     woody_context:ctx().
 set_deadline(undefined, Context) ->
     Context;
 set_deadline(Deadline, Context) ->
-    WoodyDeadline = woody_deadline:from_unixtime_ms(mg_deadline:to_unixtime_ms(Deadline)),
+    WoodyDeadline = woody_deadline:from_unixtime_ms(mg_core_deadline:to_unixtime_ms(Deadline)),
     woody_context:set_deadline(WoodyDeadline, Context).

@@ -107,7 +107,7 @@ mg_woody_api_config(_C) ->
         {woody_server, #{ip => {0,0,0,0,0,0,0,0}, port => 8022, limits => #{}}},
         {namespaces, #{
             ?NS => #{
-                storage    => mg_storage_memory,
+                storage    => mg_core_storage_memory,
                 processor  => #{
                     url            => <<"http://localhost:8023/processor">>,
                     transport_opts => #{pool => ns, max_connections => 100}
@@ -124,7 +124,7 @@ mg_woody_api_config(_C) ->
             }
         }},
         {event_sink_ns, #{
-            storage => mg_storage_memory,
+            storage => mg_core_storage_memory,
             default_processing_timeout => 5000
         }}
     ].
@@ -135,7 +135,7 @@ mg_woody_api_config(_C) ->
 offset_bin_metric_test(_C) ->
     Offsets = [erlang:trunc(-10 + math:pow(2, I)) || I <- lists:seq(0, 10, 1)],
     _ = [
-        ok = test_beat(#mg_timer_lifecycle_created{
+        ok = test_beat(#mg_core_timer_lifecycle_created{
             namespace = ?NS,
             target_timestamp = genlib_time:unow() + Offset
         })
@@ -146,7 +146,7 @@ offset_bin_metric_test(_C) ->
 fraction_and_queue_bin_metric_test(_C) ->
     Samples = lists:seq(0, 200, 1),
     _ = [
-        ok = test_beat(#mg_worker_start_attempt{
+        ok = test_beat(#mg_core_worker_start_attempt{
             namespace = ?NS,
             msg_queue_len = Sample,
             msg_queue_limit = 100
@@ -158,7 +158,7 @@ fraction_and_queue_bin_metric_test(_C) ->
 duration_bin_metric_test(_C) ->
     Samples = [erlang:trunc(math:pow(2, I)) || I <- lists:seq(0, 20, 1)],
     _ = [
-        ok = test_beat(#mg_machine_process_finished{
+        ok = test_beat(#mg_core_machine_process_finished{
             namespace = ?NS,
             duration = Sample,
             processor_impact = {init, []}

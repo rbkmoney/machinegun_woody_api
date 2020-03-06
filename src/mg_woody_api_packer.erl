@@ -379,7 +379,7 @@ unpack(state_change, MachineStateChange) ->
     } = MachineStateChange,
     {
         unpack(aux_state, AuxState),
-        unpack({list, event_body}, mg_utils:take_defined([EventBodies, []]))
+        unpack({list, event_body}, mg_core_utils:take_defined([EventBodies, []]))
     };
 unpack(signal, {timeout, #mg_stateproc_TimeoutSignal{}}) ->
     timeout;
@@ -445,7 +445,7 @@ unpack(Type, Value) ->
 
 %%
 
--spec pack_opaque(mg_storage:opaque()) ->
+-spec pack_opaque(mg_core_storage:opaque()) ->
     mg_proto_msgpack_thrift:'Value'().
 pack_opaque(null) ->
     {nl, #mg_msgpack_Nil{}};
@@ -467,7 +467,7 @@ pack_opaque(Arg) ->
     erlang:error(badarg, [Arg]).
 
 -spec unpack_opaque(mg_proto_msgpack_thrift:'Value'()) ->
-    mg_storage:opaque().
+    mg_core_storage:opaque().
 unpack_opaque({nl, #mg_msgpack_Nil{}}) ->
     null;
 unpack_opaque({b, Boolean}) ->

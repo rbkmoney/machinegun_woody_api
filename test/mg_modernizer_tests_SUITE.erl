@@ -95,7 +95,7 @@ init_per_suite(C) ->
     % dbg:tpl({mg_woody_api, '_', '_'}, x),
     Apps = mg_ct_helper:start_applications([gproc]),
     % Запускаем memory storage, который сможет "пережить" рестарты mg
-    {ok, StoragePid} = mg_storage_memory:start_link(#{name => ?MODULE}),
+    {ok, StoragePid} = mg_core_storage_memory:start_link(#{name => ?MODULE}),
     true = erlang:unlink(StoragePid),
     [{suite_apps, Apps}, {storage_name, ?MODULE} | C].
 
@@ -171,7 +171,7 @@ mg_woody_api_config(Name, C) ->
         {namespaces, #{
             ?NS => maps:merge(
                 #{
-                    storage    => {mg_storage_memory, #{
+                    storage    => {mg_core_storage_memory, #{
                         existing_storage_name => ?config(storage_name, C)}
                     },
                     processor  => #{
@@ -198,19 +198,19 @@ mg_woody_api_config(Name, C) ->
             )
         }},
         {event_sink_ns, #{
-            storage => mg_storage_memory,
+            storage => mg_core_storage_memory,
             default_processing_timeout => 5000
         }}
     ].
 
 %%
 
--type legacy_st() :: sets:set(mg_storage:opaque()).
--type modern_st() :: #{integer() => [mg_storage:opaque()]}.
+-type legacy_st() :: sets:set(mg_core_storage:opaque()).
+-type modern_st() :: #{integer() => [mg_core_storage:opaque()]}.
 -type any_st()    :: {legacy, legacy_st()} | {modern, modern_st()}.
 
--spec legacy_call_handler(mg_events_machine:call_args()) ->
-    mg_events_machine:call_result().
+-spec legacy_call_handler(mg_core_events_machine:call_args()) ->
+    mg_core_events_machine:call_result().
 legacy_call_handler({[<<"store">>, Element], Machine}) ->
     St = collapse_legacy(Machine),
     case lookup(Element, {legacy, St}) of
@@ -222,8 +222,8 @@ legacy_call_handler({[<<"store">>, Element], Machine}) ->
             {true, {null(), [{#{}, Element}]}, #{}}
     end.
 
--spec modern_call_handler(mg_events_machine:call_args()) ->
-    mg_events_machine:call_result().
+-spec modern_call_handler(mg_core_events_machine:call_args()) ->
+    mg_core_events_machine:call_result().
 modern_call_handler({[<<"store">>, Element], Machine}) ->
     St = collapse_modern(Machine),
     Hash = erlang:phash2(Element),
@@ -236,8 +236,8 @@ modern_call_handler({[<<"store">>, Element], Machine}) ->
             {true, {null(), [{#{format_version => ?MODERN_FMT_VSN}, [Hash, Element]}]}, #{}}
     end.
 
--spec modernize_handler(mg_events_modernizer:machine_event()) ->
-    mg_events_modernizer:modernized_event_body().
+-spec modernize_handler(mg_core_events_modernizer:machine_event()) ->
+    mg_core_events_modernizer:modernized_event_body().
 modernize_handler(#{event := #{body := {Metadata, Element}}}) ->
     [] = maps:keys(Metadata),
     {
@@ -245,11 +245,11 @@ modernize_handler(#{event := #{body := {Metadata, Element}}}) ->
         [erlang:phash2(Element), Element]
     }.
 
--spec null() -> mg_events:content().
+-spec null() -> mg_core_events:content().
 null() ->
     {#{}, null}.
 
--spec collapse_legacy(mg_events_machine:machine()) -> legacy_st().
+-spec collapse_legacy(mg_core_events_machine:machine()) -> legacy_st().
 collapse_legacy(#{history := History}) ->
     lists:foldl(
         fun (#{body := {_Metadata, Element}}, Set) ->
@@ -259,7 +259,7 @@ collapse_legacy(#{history := History}) ->
         History
     ).
 
--spec collapse_modern(mg_events_machine:machine()) -> modern_st().
+-spec collapse_modern(mg_core_events_machine:machine()) -> modern_st().
 collapse_modern(#{history := History}) ->
     lists:foldl(
         fun (#{body := {#{format_version := ?MODERN_FMT_VSN}, [Hash, Element]}}, St) ->
@@ -271,7 +271,7 @@ collapse_modern(#{history := History}) ->
 
 %%
 
--spec collapse(mg_events_machine:machine(), config()) -> any_st().
+-spec collapse(mg_core_events_machine:machine(), config()) -> any_st().
 collapse(Machine, C) ->
     case ?config(group_name, C) of
         legacy_activities ->
@@ -286,14 +286,14 @@ count({legacy, St}) ->
 count({modern, St}) ->
     maps:fold(fun (_, Es, Sum) -> Sum + length(Es) end, 0, St).
 
--spec lookup(mg_storage:opaque(), any_st()) -> boolean().
+-spec lookup(mg_core_storage:opaque(), any_st()) -> boolean().
 lookup(Element, {legacy, St}) ->
     sets:is_element(Element, St);
 lookup(Element, {modern, St}) ->
     Hash = erlang:phash2(Element),
     lookup_by_hash(Hash, Element, St).
 
--spec lookup_by_hash(integer(), mg_storage:opaque(), modern_st()) -> boolean().
+-spec lookup_by_hash(integer(), mg_core_storage:opaque(), modern_st()) -> boolean().
 lookup_by_hash(Hash, Element, St) ->
     case St of
         #{Hash := Es} ->

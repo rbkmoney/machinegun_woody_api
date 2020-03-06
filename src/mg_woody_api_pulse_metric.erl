@@ -45,57 +45,57 @@ handle_beat(undefined, Beat) ->
 -spec create_metric(beat()) ->
     metrics().
 % Machine lifecycle
-create_metric(#mg_machine_lifecycle_loaded{namespace = NS}) ->
+create_metric(#mg_core_machine_lifecycle_loaded{namespace = NS}) ->
     [create_inc([mg, machine, lifecycle, NS, loaded])];
-create_metric(#mg_machine_lifecycle_unloaded{namespace = NS}) ->
+create_metric(#mg_core_machine_lifecycle_unloaded{namespace = NS}) ->
     [create_inc([mg, machine, lifecycle, NS, unloaded])];
-create_metric(#mg_machine_lifecycle_created{namespace = NS}) ->
+create_metric(#mg_core_machine_lifecycle_created{namespace = NS}) ->
     [create_inc([mg, machine, lifecycle, NS, created])];
-create_metric(#mg_machine_lifecycle_removed{namespace = NS}) ->
+create_metric(#mg_core_machine_lifecycle_removed{namespace = NS}) ->
     [create_inc([mg, machine, lifecycle, NS, removed])];
-create_metric(#mg_machine_lifecycle_failed{namespace = NS}) ->
+create_metric(#mg_core_machine_lifecycle_failed{namespace = NS}) ->
     [create_inc([mg, machine, lifecycle, NS, failed])];
-create_metric(#mg_machine_lifecycle_committed_suicide{namespace = NS}) ->
+create_metric(#mg_core_machine_lifecycle_committed_suicide{namespace = NS}) ->
     [create_inc([mg, machine, lifecycle, NS, committed_suicide])];
-create_metric(#mg_machine_lifecycle_loading_error{namespace = NS}) ->
+create_metric(#mg_core_machine_lifecycle_loading_error{namespace = NS}) ->
     [create_inc([mg, machine, lifecycle, NS, loading_error])];
-create_metric(#mg_machine_lifecycle_transient_error{namespace = NS}) ->
+create_metric(#mg_core_machine_lifecycle_transient_error{namespace = NS}) ->
     [create_inc([mg, machine, lifecycle, NS, transient_error])];
 % Machine processing
-create_metric(#mg_machine_process_started{processor_impact = Impact, namespace = NS}) ->
+create_metric(#mg_core_machine_process_started{processor_impact = Impact, namespace = NS}) ->
     ImpactTag = decode_impact(Impact),
     [create_inc([mg, machine, process, NS, ImpactTag, started])];
-create_metric(#mg_machine_process_finished{processor_impact = Impact, namespace = NS, duration = Duration}) ->
+create_metric(#mg_core_machine_process_finished{processor_impact = Impact, namespace = NS, duration = Duration}) ->
     ImpactTag = decode_impact(Impact),
     [
         create_inc([mg, machine, process, NS, ImpactTag, finished]),
         create_bin_inc([mg, machine, process, NS, ImpactTag, duration], duration, Duration)
     ];
 % Timer lifecycle
-create_metric(#mg_timer_lifecycle_created{namespace = NS, target_timestamp = Timestamp}) ->
+create_metric(#mg_core_timer_lifecycle_created{namespace = NS, target_timestamp = Timestamp}) ->
     [
         create_inc([mg, timer, lifecycle, NS, created]),
         create_bin_inc([mg, timer, lifecycle, NS, created, ts_offset], offset, Timestamp)
     ];
-create_metric(#mg_timer_lifecycle_rescheduled{namespace = NS, target_timestamp = Timestamp}) ->
+create_metric(#mg_core_timer_lifecycle_rescheduled{namespace = NS, target_timestamp = Timestamp}) ->
     [
         create_inc([mg, timer, lifecycle, NS, rescheduled]),
         create_bin_inc([mg, timer, lifecycle, NS, rescheduled, ts_offset], offset, Timestamp)
     ];
-create_metric(#mg_timer_lifecycle_rescheduling_error{namespace = NS}) ->
+create_metric(#mg_core_timer_lifecycle_rescheduling_error{namespace = NS}) ->
     [create_inc([mg, timer, lifecycle, NS, rescheduling_error])];
-create_metric(#mg_timer_lifecycle_removed{namespace = NS}) ->
+create_metric(#mg_core_timer_lifecycle_removed{namespace = NS}) ->
     [create_inc([mg, timer, lifecycle, NS, removed])];
 % Timer processing
-create_metric(#mg_timer_process_started{namespace = NS, queue = Queue}) ->
+create_metric(#mg_core_timer_process_started{namespace = NS, queue = Queue}) ->
     [create_inc([mg, timer, process, NS, Queue, started])];
-create_metric(#mg_timer_process_finished{namespace = NS, queue = Queue, duration = Duration}) ->
+create_metric(#mg_core_timer_process_finished{namespace = NS, queue = Queue, duration = Duration}) ->
     [
         create_inc([mg, timer, process, NS, Queue, finished]),
         create_bin_inc([mg, timer, process, NS, Queue, duration], duration, Duration)
     ];
 % scheduler
-create_metric(#mg_scheduler_search_success{
+create_metric(#mg_core_scheduler_search_success{
     scheduler_name = Name,
     namespace = NS,
     delay = DelayMs,
@@ -105,17 +105,17 @@ create_metric(#mg_scheduler_search_success{
         create_inc([mg, scheduler, NS, Name, scan, success]),
         create_bin_inc([mg, scheduler, NS, Name, scan, duration], duration, Duration)
     ];
-create_metric(#mg_scheduler_search_error{scheduler_name = Name, namespace = NS}) ->
+create_metric(#mg_core_scheduler_search_error{scheduler_name = Name, namespace = NS}) ->
     [create_inc([mg, scheduler, NS, Name, scan, error])];
-create_metric(#mg_scheduler_task_error{scheduler_name = Name, namespace = NS}) ->
+create_metric(#mg_core_scheduler_task_error{scheduler_name = Name, namespace = NS}) ->
     [create_inc([mg, scheduler, NS, Name, task, error])];
-create_metric(#mg_scheduler_new_tasks{scheduler_name = Name, namespace = NS, new_tasks_count = Count}) ->
+create_metric(#mg_core_scheduler_new_tasks{scheduler_name = Name, namespace = NS, new_tasks_count = Count}) ->
     [create_inc([mg, scheduler, NS, Name, task, created], Count)];
-create_metric(#mg_scheduler_task_started{scheduler_name = Name, namespace = NS, task_delay = DelayMS}) ->
+create_metric(#mg_core_scheduler_task_started{scheduler_name = Name, namespace = NS, task_delay = DelayMS}) ->
     DelayMetrics = create_delay_inc([mg, scheduler, NS, Name, task, delay], DelayMS),
     [create_inc([mg, scheduler, NS, Name, task, started]) | DelayMetrics];
-create_metric(#mg_scheduler_task_finished{} = Beat) ->
-    #mg_scheduler_task_finished{
+create_metric(#mg_core_scheduler_task_finished{} = Beat) ->
+    #mg_core_scheduler_task_finished{
         scheduler_name = Name,
         namespace = NS,
         process_duration = Processing
@@ -124,8 +124,8 @@ create_metric(#mg_scheduler_task_finished{} = Beat) ->
         create_inc([mg, scheduler, NS, Name, task, finished]),
         create_bin_inc([mg, scheduler, NS, Name, task, processing], duration, Processing)
     ];
-create_metric(#mg_scheduler_quota_reserved{} = Beat) ->
-    #mg_scheduler_quota_reserved{
+create_metric(#mg_core_scheduler_quota_reserved{} = Beat) ->
+    #mg_core_scheduler_quota_reserved{
         scheduler_name = Name,
         namespace = NS,
         active_tasks = Active,
@@ -138,11 +138,11 @@ create_metric(#mg_scheduler_quota_reserved{} = Beat) ->
         create_gauge([mg, scheduler, NS, Name, quota, reserved], Reserved)
     ];
 % Workers management
-create_metric(#mg_worker_call_attempt{namespace = NS}) ->
+create_metric(#mg_core_worker_call_attempt{namespace = NS}) ->
     [
         create_inc([mg, workers, NS, call_attempt])
     ];
-create_metric(#mg_worker_start_attempt{namespace = NS, msg_queue_len = QLen, msg_queue_limit = QLimit}) ->
+create_metric(#mg_core_worker_start_attempt{namespace = NS, msg_queue_len = QLen, msg_queue_limit = QLimit}) ->
     QUsage = calc_queue_usage(QLen, QLimit),
     [
         create_inc([mg, workers, NS, start_attempt]),
@@ -155,7 +155,7 @@ create_metric(_Beat) ->
 
 %% Utils
 
--spec decode_impact(mg_machine:processor_impact()) ->
+-spec decode_impact(mg_core_machine:processor_impact()) ->
     impact_tag().
 decode_impact({init, _Args}) ->
     init;
@@ -168,7 +168,7 @@ decode_impact(timeout) ->
 decode_impact(continuation) ->
     continuation.
 
--spec calc_queue_usage(non_neg_integer(), mg_workers_manager:queue_limit()) ->
+-spec calc_queue_usage(non_neg_integer(), mg_core_workers_manager:queue_limit()) ->
     float().
 calc_queue_usage(Len, 0) ->
     erlang:float(Len);

@@ -29,13 +29,13 @@
 -export_type([modernizer_function/0]).
 
 -type processor_signal_function() ::
-    fun((mg_events_machine:signal_args()) -> mg_events_machine:signal_result()).
+    fun((mg_core_events_machine:signal_args()) -> mg_events_machine:signal_result()).
 
 -type processor_call_function() ::
-    fun((mg_events_machine:call_args()) -> mg_events_machine:call_result()).
+    fun((mg_core_events_machine:call_args()) -> mg_events_machine:call_result()).
 
 -type processor_repair_function() ::
-    fun((mg_events_machine:repair_args()) -> mg_events_machine:repair_result()).
+    fun((mg_core_events_machine:repair_args()) -> mg_events_machine:repair_result()).
 
 -type processor_functions() :: #{
     signal => processor_signal_function(),
@@ -44,7 +44,7 @@
 }.
 
 -type modernizer_function() ::
-    fun((mg_events_modernizer:machine_event()) -> mg_events_modernizer:modernized_event_body()).
+    fun((mg_core_events_modernizer:machine_event()) -> mg_events_modernizer:modernized_event_body()).
 
 -type modernizer_functions() :: #{
     modernize => modernizer_function()
@@ -63,7 +63,7 @@
 %% API
 %%
 -spec start(host_address(), integer(), options(), any()) ->
-    mg_utils:gen_start_ret().
+    mg_core_utils:gen_start_ret().
 start(Host, Port, Options, Config) ->
     case start_link(Host, Port, Options, Config) of
         {ok, ProcessorPid} ->
@@ -74,7 +74,7 @@ start(Host, Port, Options, Config) ->
     end.
 
 -spec start_link(host_address(), integer(), options(), any()) ->
-    mg_utils:gen_start_ret().
+    mg_core_utils:gen_start_ret().
 start_link(Host, Port, Options, Config) ->
     Flags = #{strategy => one_for_all},
     Woo = woody_server:child_spec(
@@ -96,7 +96,7 @@ start_link(Host, Port, Options, Config) ->
     ),
     ChildsSpecs = [Woo | mg_woody_api:child_specs(Config)],
     ok = supervisor:check_childspecs(mg_woody_api:child_specs(Config)),
-    mg_utils_supervisor_wrapper:start_link(Flags, ChildsSpecs).
+    mg_core_utils_supervisor_wrapper:start_link(Flags, ChildsSpecs).
 
 %%
 %% processor handlers
@@ -124,10 +124,10 @@ handle_function('ModernizeEvent', [Args], _WoodyContext, Functions) ->
 %%
 %% helpers
 %%
--spec invoke_function(signal,    functions(), term()) -> mg_events_machine:signal_result()
-                   ; (call,      functions(), term()) -> mg_events_machine:call_result()
-                   ; (repair,    functions(), term()) -> mg_events_machine:repair_result()
-                   ; (modernize, functions(), term()) -> mg_events_modernizer:modernized_event_body().
+-spec invoke_function(signal,    functions(), term()) -> mg_core_events_machine:signal_result()
+                   ; (call,      functions(), term()) -> mg_core_events_machine:call_result()
+                   ; (repair,    functions(), term()) -> mg_core_events_machine:repair_result()
+                   ; (modernize, functions(), term()) -> mg_core_events_modernizer:modernized_event_body().
 invoke_function(Type, Functions, Args) ->
     case maps:find(Type, Functions) of
         {ok, Fun} ->
@@ -136,10 +136,10 @@ invoke_function(Type, Functions, Args) ->
             default_result(Type, Args)
     end.
 
--spec default_result(signal    , term()) -> mg_events_machine:signal_result()
-                  ; (call      , term()) -> mg_events_machine:call_result()
-                  ; (repair    , term()) -> mg_events_machine:repair_result()
-                  ; (modernize , term()) -> mg_events_modernizer:modernized_event_body().
+-spec default_result(signal    , term()) -> mg_core_events_machine:signal_result()
+                  ; (call      , term()) -> mg_core_events_machine:call_result()
+                  ; (repair    , term()) -> mg_core_events_machine:repair_result()
+                  ; (modernize , term()) -> mg_core_events_modernizer:modernized_event_body().
 default_result(signal, _Args) ->
     {{default_content(), []}, #{timer => undefined, tag => undefined}};
 default_result(call, _Args) ->
@@ -149,6 +149,6 @@ default_result(repair, _Args) ->
 default_result(modernize, #{event := #{body := Body}}) ->
     Body.
 
--spec default_content() -> mg_events:content().
+-spec default_content() -> mg_core_events:content().
 default_content() ->
     {#{}, <<>>}.

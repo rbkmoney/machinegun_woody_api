@@ -19,14 +19,14 @@
 -include_lib("include/mg_woody_api/pulse.hrl").
 
 %% mg_pulse handler
--behaviour(mg_pulse).
+-behaviour(mg_core_pulse).
 -export([handle_beat/2]).
 
 %% pulse types
 -type beat() ::
-      mg_pulse:beat()
-    | mg_consuela_pulse_adapter:beat()
-    | mg_queue_scanner:beat()
+      mg_core_pulse:beat()
+    | mg_core_consuela_pulse_adapter:beat()
+    | mg_core_queue_scanner:beat()
     | #woody_event{}
     | #woody_request_handle_error{}.
 

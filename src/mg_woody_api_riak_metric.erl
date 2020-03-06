@@ -32,7 +32,7 @@
 %% Types
 
 -type options() :: #{
-    namespace := machinegun_core:ns(),
+    namespace := mg_core:ns(),
     type := storage_type(),
     interval => timeout()
 }.
@@ -43,13 +43,13 @@
 
 -record(state, {
     interval :: timeout(),
-    namespace :: machinegun_core:ns(),
+    namespace :: mg_core:ns(),
     storage_type :: storage_type(),
     storage :: storage()
 }).
 -type state() :: #state{}.
 
--type storage() :: mg_storage:options().
+-type storage() :: mg_core_storage:options().
 -type storage_type() :: atom().
 -type metric() :: how_are_you:metric().
 -type metric_key() :: how_are_you:metric_key().
@@ -83,8 +83,8 @@ get_interval(#state{interval = Interval}) ->
 
 -spec gather_metrics(state()) -> metrics().
 gather_metrics(#state{storage = Storage} = State) ->
-    {mg_storage_riak, StorageOptions} = mg_utils:separate_mod_opts(Storage),
-    Metrics = mg_storage_riak:pool_utilization(StorageOptions),
+    {mg_core_storage_riak, StorageOptions} = mg_core_utils:separate_mod_opts(Storage),
+    Metrics = mg_core_storage_riak:pool_utilization(StorageOptions),
     KeyPrefix = build_key_prefix(State),
     [gauge([KeyPrefix, Key], Value) || {Key, Value} <- Metrics].
 
@@ -145,7 +145,7 @@ rebuild_key(Key) ->
     [mg | Key].
 
 -spec try_decode_pool_name(binary()) ->
-    {ok, {machinegun_core:ns(), storage_type()}} | error.
+    {ok, {mg_core:ns(), storage_type()}} | error.
 try_decode_pool_name(PoolName) ->
     %% TODO: Try to pass options through `pooler` metric mod option instead of pool name parsing
     try erlang:binary_to_term(base64:decode(PoolName), [safe]) of

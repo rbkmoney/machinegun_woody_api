@@ -47,7 +47,7 @@ init_per_suite(C) ->
         how_are_you,
         {mg_woody_api, Config}
     ]),
-    _ = code:load_file(mg_storage_memory),
+    _ = code:load_file(mg_core_storage_memory),
     CallFunc =
         fun({Args, _Machine}) ->
             case Args of
@@ -78,7 +78,7 @@ init_per_suite(C) ->
         {automaton_options , #{
             url => "http://localhost:8022",
             ns => ?NS,
-            retry_strategy => mg_retry:new_strategy({exponential, 5, 2, 1000})
+            retry_strategy => mg_core_retry:new_strategy({exponential, 5, 2, 1000})
         }},
         {event_sink_options, "http://localhost:8022"          },
         {processor_pid     , ProcessorPid                     }
@@ -104,7 +104,7 @@ mg_woody_api_config(_C) ->
         }},
         {namespaces, #{
             ?NS => #{
-                storage    => mg_storage_memory,
+                storage    => mg_core_storage_memory,
                 processor  => #{
                     url            => <<"http://localhost:8023/processor">>,
                     transport_opts => #{pool => ns, max_connections => 100}
@@ -114,12 +114,12 @@ mg_woody_api_config(_C) ->
                     timers => #{}
                 },
                 retries => #{},
-                event_sinks => [{mg_events_sink_machine, #{name => default, machine_id => ?ES_ID}}],
+                event_sinks => [{mg_core_events_sink_machine, #{name => default, machine_id => ?ES_ID}}],
                 event_stash_size => 10
             }
         }},
         {event_sink_ns, #{
-            storage => mg_storage_memory,
+            storage => mg_core_storage_memory,
             default_processing_timeout => 5000
         }}
     ].
@@ -135,7 +135,7 @@ stress_test(C) ->
     ok = timer:sleep(TestTimeout),
     ok = mg_ct_helper:stop_wait_all(Processes, shutdown, 2000).
 
--spec stress_test_start_processes(term(), machinegun_core:id()) ->
+-spec stress_test_start_processes(term(), mg_core:id()) ->
     _.
 stress_test_start_processes(C, ID) ->
     Pid =
@@ -151,19 +151,19 @@ stress_test_start_processes(C, ID) ->
 %%
 %% utils
 %%
--spec start_machine(config(), machinegun_core:id()) ->
+-spec start_machine(config(), mg_core:id()) ->
     _.
 start_machine(C, ID) ->
     mg_automaton_client:start(automaton_options(C), ID, ID).
 
--spec create(config(), machinegun_core:id()) ->
+-spec create(config(), mg_core:id()) ->
     _.
 create(C, ID) ->
     create_event(<<"event">>, C, ID),
     timer:sleep(1000),
     create(C, ID).
 
--spec create_event(binary(), config(), machinegun_core:id()) ->
+-spec create_event(binary(), config(), mg_core:id()) ->
     _.
 create_event(Event, C, ID) ->
     Event = mg_automaton_client:call(automaton_options(C), {id, ID}, Event).

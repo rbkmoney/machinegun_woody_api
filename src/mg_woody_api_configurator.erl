@@ -327,7 +327,7 @@ proplist(Config) ->
 -spec ip(string()) ->
     inet:ip_address().
 ip(Host) ->
-    mg_utils:throw_if_error(inet:parse_address(Host)).
+    mg_core_utils:throw_if_error(inet:parse_address(Host)).
 
 -spec utf_bin(string()) ->
     binary().

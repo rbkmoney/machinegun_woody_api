@@ -204,7 +204,7 @@ groups() ->
     config().
 init_per_suite(C) ->
     % dbg:tracer(), dbg:p(all, c),
-    % dbg:tpl({mg_machine, retry_strategy, '_'}, x),
+    % dbg:tpl({mg_core_machine, retry_strategy, '_'}, x),
     C.
 
 -spec end_per_suite(config()) ->
@@ -215,14 +215,14 @@ end_per_suite(_C) ->
 -spec init_per_group(group_name(), config()) ->
     config().
 init_per_group(mwc, C) ->
-    init_per_group([{storage, mg_storage_memory} | C]);
+    init_per_group([{storage, mg_core_storage_memory} | C]);
 init_per_group(history, C) ->
-    init_per_group([{storage, mg_storage_memory} | C]);
+    init_per_group([{storage, mg_core_storage_memory} | C]);
 init_per_group(_, C) ->
     % NOTE
     % Даже такой небольшой шанс может сработать в ситуациях, когда мы в процессоре выгребаем большой кусок
     % истории машины, из-за чего реальная вероятность зафейлить операцию равна (1 - (1 - p) ^ n).
-    init_per_group([{storage, {mg_storage_memory, #{random_transient_fail => 0.01}}} | C]).
+    init_per_group([{storage, {mg_core_storage_memory, #{random_transient_fail => 0.01}}} | C]).
 
 -spec init_per_group(config()) ->
     config().
@@ -234,7 +234,7 @@ init_per_group(C) ->
         {mg_woody_api, Config}
     ]),
     % This mode is never referenced directly and need to be force-loaded
-    _ = code:load_file(mg_storage_memory),
+    _ = code:load_file(mg_core_storage_memory),
     {ok, ProcessorPid} = mg_test_processor:start(
         {0, 0, 0, 0}, 8023,
         genlib_map:compact(#{
@@ -262,8 +262,8 @@ init_per_group(C) ->
         C
     ].
 
--spec default_signal_handler(mg_events_machine:signal_args()) ->
-    mg_events_machine:signal_result().
+-spec default_signal_handler(mg_core_events_machine:signal_args()) ->
+    mg_core_events_machine:signal_result().
 default_signal_handler({Args, _Machine}) ->
     case Args of
         {init, <<"fail" >>} ->
@@ -283,8 +283,8 @@ default_signal_handler({Args, _Machine}) ->
             mg_test_processor:default_result(signal, Args)
     end.
 
--spec default_call_handler(mg_events_machine:call_args()) ->
-    mg_events_machine:call_result().
+-spec default_call_handler(mg_core_events_machine:call_args()) ->
+    mg_core_events_machine:call_result().
 default_call_handler({Args, #{history := History}}) ->
     Evs = [N || #{body := {_Metadata, N}} <- History],
     SetTimer = {set_timer, {timeout, 1}, {undefined, undefined, forward}, 30},
@@ -303,8 +303,8 @@ default_call_handler({Args, #{history := History}}) ->
         <<"remove">>      -> {Args, {null(), [content(<<"removed">>)]}, #{remove => remove}}
     end.
 
--spec default_repair_handler(mg_events_machine:repair_args()) ->
-    mg_events_machine:repair_result().
+-spec default_repair_handler(mg_core_events_machine:repair_args()) ->
+    mg_core_events_machine:repair_result().
 default_repair_handler({Args, _Machine}) ->
     case Args of
         <<"error">> ->
@@ -315,11 +315,11 @@ default_repair_handler({Args, _Machine}) ->
             {Args, {null(), []}, #{}}
     end.
 
--spec null() -> mg_events:content().
+-spec null() -> mg_core_events:content().
 null() ->
     content(null).
 
--spec content(mg_storage:opaque()) -> mg_events:content().
+-spec content(mg_core_storage:opaque()) -> mg_core_events:content().
 content(Body) ->
     {#{format_version => 42}, Body}.
 
@@ -359,20 +359,20 @@ mg_woody_api_config(C) ->
                 % сейчас же можно иногда включать и смотреть
                 % suicide_probability => 0.1,
                 event_sinks => [
-                    {mg_events_sink_machine, #{
+                    {mg_core_events_sink_machine, #{
                         name => machine,
                         machine_id => ?ES_ID
                     }},
-                    {mg_events_sink_kafka, #{
+                    {mg_core_events_sink_kafka, #{
                         name => kafka,
                         topic => ?ES_ID,
-                        client => mg_kafka_client
+                        client => mg_core_kafka_client
                     }}
                 ]
             }
         }},
         {event_sink_ns, #{
-            storage => mg_storage_memory,
+            storage => mg_core_storage_memory,
             default_processing_timeout => 5000
         }}
     ].
@@ -490,8 +490,8 @@ history_changed_atomically(C) ->
     AtomicResult = {HistorySeen, AuxState},
     ?assertEqual(#{}, maps:without([undefined, AtomicResult], Groups)).
 
--spec get_simple_history(config(), machinegun_core:id(), mg_events:history_range()) ->
-    {[{mg_events:id(), mg_storage:opaque()}], mg_storage:opaque()}.
+-spec get_simple_history(config(), mg_core:id(), mg_core_events:history_range()) ->
+    {[{mg_core_events:id(), mg_storage:opaque()}], mg_storage:opaque()}.
 get_simple_history(C, ID, HRange) ->
     try mg_automaton_client:get_machine(automaton_options(C), {id, ID}, HRange) of
         #{history := History, aux_state := {#{}, AuxState}} ->
@@ -518,7 +518,7 @@ failed_machine_start(C) ->
     _.
 machine_start_timeout(C) ->
     {'EXIT', {{woody_error, _}, _}} =
-        (catch mg_automaton_client:start(automaton_options(C), ?ID, <<"timeout">>, mg_deadline:from_timeout(1000))),
+        (catch mg_automaton_client:start(automaton_options(C), ?ID, <<"timeout">>, mg_core_deadline:from_timeout(1000))),
     #mg_stateproc_MachineNotFound{} =
         (catch mg_automaton_client:call(automaton_options(C), {id, ?ID}, <<"nop">>)).
 
@@ -600,7 +600,7 @@ abort_timer(C) ->
 -spec timeout_call_with_deadline(config()) ->
     _.
 timeout_call_with_deadline(C) ->
-    DeadlineFn = fun() -> mg_deadline:from_timeout(?DEADLINE_TIMEOUT) end,
+    DeadlineFn = fun() -> mg_core_deadline:from_timeout(?DEADLINE_TIMEOUT) end,
     Options0 = no_timeout_automaton_options(C),
     Options1 = maps:remove(retry_strategy, Options0),
     {'EXIT', {{woody_error, {external, result_unknown, <<"{timeout", _/binary>>}}, _Stack}} =
@@ -610,7 +610,7 @@ timeout_call_with_deadline(C) ->
 -spec success_call_with_deadline(config()) ->
     _.
 success_call_with_deadline(C) ->
-    Deadline = mg_deadline:from_timeout(?DEADLINE_TIMEOUT * 3),
+    Deadline = mg_core_deadline:from_timeout(?DEADLINE_TIMEOUT * 3),
     Options = no_timeout_automaton_options(C),
     <<"sleep">> = mg_automaton_client:call(Options, {id, ?ID}, <<"sleep">>, Deadline).
 
@@ -719,7 +719,7 @@ config_with_multiple_event_sinks(_C) ->
         {woody_server, #{ip => {0,0,0,0,0,0,0,0}, port => 8022, limits => #{}}},
         {namespaces, #{
             <<"1">> => #{
-                storage    => mg_storage_memory,
+                storage    => mg_core_storage_memory,
                 processor  => #{
                     url            => <<"http://localhost:8023/processor">>,
                     transport_opts => #{pool => pool1, max_connections => 100}
@@ -730,10 +730,10 @@ config_with_multiple_event_sinks(_C) ->
                     overseer => #{}
                 },
                 retries => #{},
-                event_sinks => [{mg_events_sink_machine, #{name => default, machine_id => <<"SingleES">>}}]
+                event_sinks => [{mg_core_events_sink_machine, #{name => default, machine_id => <<"SingleES">>}}]
             },
             <<"2">> => #{
-                storage    => mg_storage_memory,
+                storage    => mg_core_storage_memory,
                 processor  => #{
                     url            => <<"http://localhost:8023/processor">>,
                     transport_opts => #{pool => pool2, max_connections => 100}
@@ -745,20 +745,20 @@ config_with_multiple_event_sinks(_C) ->
                 },
                 retries => #{},
                 event_sinks => [
-                    {mg_events_sink_machine, #{
+                    {mg_core_events_sink_machine, #{
                         name => machine,
                         machine_id => <<"SingleES">>
                     }},
-                    {mg_events_sink_kafka, #{
+                    {mg_core_events_sink_kafka, #{
                         name => kafka,
-                        topic => <<"mg_event_sink">>,
+                        topic => <<"mg_core_event_sink">>,
                         client => mg_ct_helper:config(kafka_client_name)
                     }}
                 ]
             }
         }},
         {event_sink_ns, #{
-            storage => mg_storage_memory,
+            storage => mg_core_storage_memory,
             default_processing_timeout => 5000
         }}
     ],
@@ -768,11 +768,11 @@ config_with_multiple_event_sinks(_C) ->
         how_are_you
     ]),
     application:load(mg_woody_api),
-    _ = code:load_file(mg_storage_memory),
-    _ = code:load_file(mg_queue_timer),
-    _ = code:load_file(mg_queue_interrupted),
-    {ok, _Pid} = mg_utils_supervisor_wrapper:start_link(
-        {local, mg_sup_does_nothing},
+    _ = code:load_file(mg_core_storage_memory),
+    _ = code:load_file(mg_core_queue_timer),
+    _ = code:load_file(mg_core_queue_interrupted),
+    {ok, _Pid} = mg_core_utils_supervisor_wrapper:start_link(
+        {local, mg_core_sup_does_nothing},
         #{strategy => rest_for_one},
         mg_woody_api:child_specs(Config)
     ),
@@ -782,12 +782,12 @@ config_with_multiple_event_sinks(_C) ->
 %%
 %% utils
 %%
--spec start_machine(config(), machinegun_core:id()) ->
+-spec start_machine(config(), mg_core:id()) ->
     ok.
 start_machine(C, ID) ->
     start_machine(C, ID, ID).
 
--spec start_machine(config(), machinegun_core:id(), mg_event_machine:args()) ->
+-spec start_machine(config(), mg_core:id(), mg_core_event_machine:args()) ->
     ok.
 start_machine(C, ID, Args) ->
     case catch mg_automaton_client:start(automaton_options(C), ID, Args) of
@@ -797,12 +797,12 @@ start_machine(C, ID, Args) ->
             ok
     end.
 
--spec create_event(mg_storage:opaque(), config(), machinegun_core:id()) ->
+-spec create_event(mg_core_storage:opaque(), config(), mg_core:id()) ->
     _.
 create_event(Event, C, ID) ->
     mg_automaton_client:call(automaton_options(C), {id, ID}, Event).
 
--spec create_events(integer(), config(), machinegun_core:id()) -> _.
+-spec create_events(integer(), config(), mg_core:id()) -> _.
 create_events(N, C, ID) ->
     lists:foreach(
         fun(I) ->

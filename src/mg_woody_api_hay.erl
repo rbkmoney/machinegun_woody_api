@@ -36,11 +36,11 @@
 
 -record(state, {
     interval :: timeout(),
-    namespace :: machinegun_core:ns(),
-    registry :: mg_procreg:options()
+    namespace :: mg_core:ns(),
+    registry :: mg_core_procreg:options()
 }).
 -type state() :: #state{}.
--type worker() :: {machinegun_core:ns(), machinegun_core:id(), pid()}.
+-type worker() :: {mg_core:ns(), mg_core:id(), pid()}.
 -type metric() :: how_are_you:metric().
 -type metric_key() :: how_are_you:metric_key().
 -type metric_value() :: how_are_you:metric_value().
@@ -48,13 +48,13 @@
 
 %% API
 
--spec child_spec(options() | undefined, mg_workers_manager:options(), _ChildID) ->
+-spec child_spec(options() | undefined, mg_core_workers_manager:options(), _ChildID) ->
     supervisor:child_spec().
 child_spec(Options, ManagerOptions, ChildID) ->
     HandlerOptions = {genlib:define(Options, #{}), ManagerOptions},
     hay_metrics_handler:child_spec({?MODULE, HandlerOptions}, ChildID).
 
--spec init({options(), mg_workers_manager:options()}) -> {ok, state()}.
+-spec init({options(), mg_core_workers_manager:options()}) -> {ok, state()}.
 init({Options, #{name := NS, registry := Registry}}) ->
     {ok, #state{
         interval = maps:get(interval, Options, 10 * 1000),
@@ -68,7 +68,7 @@ get_interval(#state{interval = Interval}) ->
 
 -spec gather_metrics(state()) -> [hay_metrics:metric()].
 gather_metrics(#state{namespace = NS, registry = Procreg}) ->
-    Workers = mg_worker:list(Procreg, NS),
+    Workers = mg_core_worker:list(Procreg, NS),
     WorkerStats = workers_stats([mg, workers, NS], Workers),
     WorkerStats.
 

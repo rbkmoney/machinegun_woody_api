@@ -34,7 +34,7 @@
 %%
 -type processor() :: mg_woody_api_processor:options().
 -type modernizer() :: #{
-    current_format_version := mg_events:format_version(),
+    current_format_version := mg_core_events:format_version(),
     handler                := mg_woody_api_modernizer:options()
 }.
 -type woody_server() :: #{
@@ -47,24 +47,24 @@
 -type events_machines() :: #{
     processor                  := processor(),
     modernizer                 => modernizer(),
-    worker                     => mg_workers_manager:options(), % all but `worker_options.worker` option
-    storage                    := mg_machine:storage_options(),
-    event_sinks                => [mg_events_sink:handler()],
-    retries                    := mg_machine:retry_opt(),
-    schedulers                 := mg_machine:schedulers_opt(),
+    worker                     => mg_core_workers_manager:options(), % all but `worker_options.worker` option
+    storage                    := mg_core_machine:storage_options(),
+    event_sinks                => [mg_core_events_sink:handler()],
+    retries                    := mg_core_machine:retry_opt(),
+    schedulers                 := mg_core_machine:schedulers_opt(),
     default_processing_timeout := timeout(),
-    suicide_probability        => mg_machine:suicide_probability(),
+    suicide_probability        => mg_core_machine:suicide_probability(),
     event_stash_size           := non_neg_integer()
 }.
 -type event_sink_ns() :: #{
     default_processing_timeout := timeout(),
-    storage                    => mg_storage:options(),
-    worker                     => mg_worker:options()
+    storage                    => mg_core_storage:options(),
+    worker                     => mg_core_worker:options()
 }.
 -type config_element() ::
       {woody_server   , woody_server()                 }
     | {health_check   , erl_health:check()             }
-    | {namespaces     , #{machinegun_core:ns() => events_machines()}}
+    | {namespaces     , #{mg_core:ns() => events_machines()}}
     | {event_sink_ns  , event_sink_ns()                }
 .
 -type config() :: [config_element()].
@@ -91,7 +91,7 @@ child_specs(Config) ->
     [supervisor:child_spec()].
 quotas_child_specs(Config, ChildID) ->
     [
-        mg_quota_worker:child_spec(Options, {ChildID, maps:get(name, Options)})
+        mg_core_quota_worker:child_spec(Options, {ChildID, maps:get(name, Options)})
         || Options <- proplists:get_value(quotas, Config, [])
     ].
 
@@ -100,14 +100,14 @@ quotas_child_specs(Config, ChildID) ->
 events_machines_child_specs(Config) ->
     NSs = proplists:get_value(namespaces, Config),
     [
-        mg_events_machine:child_spec(events_machine_options(NS, Config), binary_to_atom(NS, utf8))
+        mg_core_events_machine:child_spec(events_machine_options(NS, Config), binary_to_atom(NS, utf8))
         || NS <- maps:keys(NSs)
     ].
 
 -spec event_sink_ns_child_spec(config(), atom()) ->
     supervisor:child_spec().
 event_sink_ns_child_spec(Config, ChildID) ->
-    mg_events_sink_machine:child_spec(event_sink_namespace_options(Config), ChildID).
+    mg_core_events_sink_machine:child_spec(event_sink_namespace_options(Config), ChildID).
 
 -spec woody_server_child_spec(config(), atom()) ->
     supervisor:child_spec().
@@ -162,8 +162,8 @@ api_automaton_options(Config) ->
         NSs
     ).
 
--spec events_machine_options(machinegun_core:ns(), config()) ->
-    mg_events_machine:options().
+-spec events_machine_options(mg_core:ns(), config()) ->
+    mg_core_events_machine:options().
 events_machine_options(NS, Config) ->
     NSs = proplists:get_value(namespaces, Config),
     NSConfigs = maps:get(NS, NSs),
@@ -185,19 +185,19 @@ events_machine_options(NS, Config) ->
         event_stash_size           => maps:get(event_stash_size, NSConfigs, 0)
     }.
 
--spec event_sink_options(mg_events_sink:handler(), config()) ->
-    mg_events_sink:handler().
-event_sink_options({mg_events_sink_machine, EventSinkConfig}, Config) ->
+-spec event_sink_options(mg_core_events_sink:handler(), config()) ->
+    mg_core_events_sink:handler().
+event_sink_options({mg_core_events_sink_machine, EventSinkConfig}, Config) ->
     EventSinkNS = event_sink_namespace_options(Config),
-    {mg_events_sink_machine, maps:merge(EventSinkNS, EventSinkConfig)};
-event_sink_options({mg_events_sink_kafka, EventSinkConfig}, _Config) ->
-    {mg_events_sink_kafka, EventSinkConfig#{
+    {mg_core_events_sink_machine, maps:merge(EventSinkNS, EventSinkConfig)};
+event_sink_options({mg_core_events_sink_kafka, EventSinkConfig}, _Config) ->
+    {mg_core_events_sink_kafka, EventSinkConfig#{
         pulse            => pulse(),
         encoder          => fun mg_woody_api_event_sink:serialize/3
     }}.
 
 -spec event_sink_namespace_options(config()) ->
-    mg_events_sink_machine:ns_options().
+    mg_core_events_sink_machine:ns_options().
 event_sink_namespace_options(Config) ->
     EventSinkNS = #{storage := Storage} = proplists:get_value(event_sink_ns, Config),
     NS = <<"_event_sinks">>,
@@ -211,10 +211,10 @@ event_sink_namespace_options(Config) ->
         worker           => worker_manager_options(EventSinkNS)
     }.
 
--spec tags_options(machinegun_core:ns(), events_machines()) ->
-    mg_machine_tags:options().
+-spec tags_options(mg_core:ns(), events_machines()) ->
+    mg_core_machine_tags:options().
 tags_options(NS, #{retries := Retries, storage := Storage} = Config) ->
-    TagsNS = mg_utils:concatenate_namespaces(NS, <<"tags">>),
+    TagsNS = mg_core_utils:concatenate_namespaces(NS, <<"tags">>),
     % по логике тут должен быть sub namespace, но его по историческим причинам нет
     TagsStorage = add_storage_metrics(TagsNS, tags, Storage),
     #{
@@ -225,8 +225,8 @@ tags_options(NS, #{retries := Retries, storage := Storage} = Config) ->
         retries   => Retries
     }.
 
--spec machine_options(machinegun_core:ns(), events_machines()) ->
-    mg_machine:options().
+-spec machine_options(mg_core:ns(), events_machines()) ->
+    mg_core_machine:options().
 machine_options(NS, Config) ->
     #{storage := Storage} = Config,
     Options = maps:with(
@@ -248,23 +248,23 @@ machine_options(NS, Config) ->
     }.
 
 -spec worker_manager_options(map()) ->
-    mg_workers_manager:options().
+    mg_core_workers_manager:options().
 worker_manager_options(Config) ->
     maps:merge(
         #{
-            registry => mg_procreg_gproc,
+            registry => mg_core_procreg_gproc,
             sidecar  => mg_woody_api_hay
         },
         maps:get(worker, Config, #{})
     ).
 
 -spec processor(processor()) ->
-    mg_utils:mod_opts().
+    mg_core_utils:mod_opts().
 processor(Processor) ->
     {mg_woody_api_processor, Processor#{event_handler => {mg_woody_api_event_handler, pulse()}}}.
 
 -spec modernizer_options(modernizer() | undefined) ->
-    #{modernizer => mg_events_modernizer:options()}.
+    #{modernizer => mg_core_events_modernizer:options()}.
 modernizer_options(#{current_format_version := CurrentFormatVersion, handler := WoodyClient}) ->
     #{modernizer => #{
         current_format_version => CurrentFormatVersion,
@@ -280,41 +280,41 @@ api_event_sink_options(Config) ->
     {EventSinkMachines, event_sink_namespace_options(Config)}.
 
 -spec collect_event_sink_machines(config()) ->
-    [machinegun_core:id()].
+    [mg_core:id()].
 collect_event_sink_machines(Config) ->
     NSs = proplists:get_value(namespaces, Config),
     NSConfigs = maps:values(NSs),
     EventSinks = ordsets:from_list([
         maps:get(machine_id, SinkConfig)
-        || NSConfig <- NSConfigs, {mg_events_sink_machine, SinkConfig} <- maps:get(event_sinks, NSConfig, [])
+        || NSConfig <- NSConfigs, {mg_core_events_sink_machine, SinkConfig} <- maps:get(event_sinks, NSConfig, [])
     ]),
     ordsets:to_list(EventSinks).
 
--spec sub_storage_options(machinegun_core:ns(), mg_machine:storage_options()) ->
-    mg_machine:storage_options().
+-spec sub_storage_options(mg_core:ns(), mg_core_machine:storage_options()) ->
+    mg_core_machine:storage_options().
 sub_storage_options(SubNS, Storage0) ->
-    Storage1 = mg_utils:separate_mod_opts(Storage0, #{}),
+    Storage1 = mg_core_utils:separate_mod_opts(Storage0, #{}),
     Storage2 = add_bucket_postfix(SubNS, Storage1),
     Storage2.
 
--spec add_bucket_postfix(machinegun_core:ns(), mg_storage:options()) ->
-    mg_storage:options().
-add_bucket_postfix(_, {mg_storage_memory, _} = Storage) ->
+-spec add_bucket_postfix(mg_core:ns(), mg_core_storage:options()) ->
+    mg_core_storage:options().
+add_bucket_postfix(_, {mg_core_storage_memory, _} = Storage) ->
     Storage;
-add_bucket_postfix(SubNS, {mg_storage_riak, #{bucket := Bucket} = Options}) ->
-    {mg_storage_riak, Options#{bucket := mg_utils:concatenate_namespaces(Bucket, SubNS)}}.
+add_bucket_postfix(SubNS, {mg_core_storage_riak, #{bucket := Bucket} = Options}) ->
+    {mg_core_storage_riak, Options#{bucket := mg_core_utils:concatenate_namespaces(Bucket, SubNS)}}.
 
--spec add_storage_metrics(machinegun_core:ns(), _type, mg_machine:storage_options()) ->
-    mg_machine:storage_options().
+-spec add_storage_metrics(mg_core:ns(), _type, mg_core_machine:storage_options()) ->
+    mg_core_machine:storage_options().
 add_storage_metrics(NS, Type, Storage0) ->
-    Storage1 = mg_utils:separate_mod_opts(Storage0, #{}),
+    Storage1 = mg_core_utils:separate_mod_opts(Storage0, #{}),
     do_add_storage_metrics(NS, Type, Storage1).
 
--spec do_add_storage_metrics(machinegun_core:ns(), atom(), mg_machine:storage_options()) ->
-    mg_machine:storage_options().
-do_add_storage_metrics(_NS, _Type, {mg_storage_memory, _} = Storage) ->
+-spec do_add_storage_metrics(mg_core:ns(), atom(), mg_core_machine:storage_options()) ->
+    mg_core_machine:storage_options().
+do_add_storage_metrics(_NS, _Type, {mg_core_storage_memory, _} = Storage) ->
     Storage;
-do_add_storage_metrics(NS, Type, {mg_storage_riak, Options}) ->
+do_add_storage_metrics(NS, Type, {mg_core_storage_riak, Options}) ->
     PoolOptions = maps:get(pool_options, Options, #{}),
     NewOptions = Options#{
         sidecar => {mg_woody_api_riak_metric, #{
@@ -326,9 +326,9 @@ do_add_storage_metrics(NS, Type, {mg_storage_riak, Options}) ->
             metrics_api => exometer
         }
     },
-    {mg_storage_riak, NewOptions}.
+    {mg_core_storage_riak, NewOptions}.
 
 -spec pulse() ->
-    mg_pulse:handler().
+    mg_core_pulse:handler().
 pulse() ->
     mg_woody_api_pulse.
