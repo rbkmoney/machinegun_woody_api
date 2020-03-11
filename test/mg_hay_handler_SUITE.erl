@@ -65,7 +65,7 @@ groups() ->
 -spec init_per_suite(config()) ->
     config().
 init_per_suite(C) ->
-    % This mode is never referenced directly and need to be force-loaded
+    % This module is never referenced directly and need to be force-loaded
     % TODO look for more obvious solutions
     _ = code:load_file(mg_core_storage_memory),
     Apps = mg_ct_helper:start_applications([

@@ -203,7 +203,7 @@ groups() ->
 -spec init_per_suite(config()) ->
     config().
 init_per_suite(C) ->
-    % This mode is never referenced directly and need to be force-loaded
+    % This module is never referenced directly and need to be force-loaded
     % TODO look for more obvious solutions
     _ = code:load_file(mg_core_storage_memory),
     % dbg:tracer(), dbg:p(all, c),
@@ -236,7 +236,6 @@ init_per_group(C) ->
         brod,
         {machinegun_woody_api, Config}
     ]),
-    % This mode is never referenced directly and need to be force-loaded
     {ok, ProcessorPid} = mg_test_processor:start(
         {0, 0, 0, 0}, 8023,
         genlib_map:compact(#{
