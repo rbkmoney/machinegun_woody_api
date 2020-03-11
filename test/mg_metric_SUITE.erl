@@ -99,34 +99,6 @@ init_per_group(_, C) ->
 end_per_group(_, _C) ->
     ok.
 
-% -spec mg_woody_api_config(config()) ->
-%     list().
-% mg_woody_api_config(_C) ->
-%     [
-%         {woody_server, #{ip => {0,0,0,0,0,0,0,0}, port => 8022, limits => #{}}},
-%         {namespaces, #{
-%             ?NS => #{
-%                 storage    => mg_core_storage_memory,
-%                 processor  => #{
-%                     url            => <<"http://localhost:8023/processor">>,
-%                     transport_opts => #{pool => ns, max_connections => 100}
-%                 },
-%                 worker     => #{
-%                     sidecar => {mg_woody_api_hay, #{interval => 100}}
-%                 },
-%                 default_processing_timeout => 5000,
-%                 retries => #{
-%                     storage   => {exponential, {max_total_timeout, 1000}, 1, 10},
-%                     timers    => {exponential, {max_total_timeout, 1000}, 1, 10}
-%                 },
-%                 event_stash_size => 5
-%             }
-%         }},
-%         {event_sink_ns, #{
-%             storage => mg_core_storage_memory,
-%             default_processing_timeout => 5000
-%         }}
-%     ].
 
 %% Tests
 
