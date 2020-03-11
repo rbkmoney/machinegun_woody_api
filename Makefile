@@ -44,10 +44,8 @@ CALL_ANYWHERE := \
 	start \
 	clean \
 	distclean \
-	test_configurator \
 
-
-CALL_W_CONTAINER := $(CALL_ANYWHERE) test dev_test test_configurator
+CALL_W_CONTAINER := $(CALL_ANYWHERE) test dev_test
 
 all: compile
 
