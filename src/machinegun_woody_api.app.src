@@ -25,9 +25,7 @@
         rfc3339,
         mg_proto,
         woody,
-        yamerl,
         bear,
-        cg_mon,
         how_are_you,
         erl_health,
         machinegun_core
