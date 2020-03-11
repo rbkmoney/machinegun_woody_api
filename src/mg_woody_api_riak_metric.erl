@@ -84,7 +84,7 @@ get_interval(#state{interval = Interval}) ->
 -spec gather_metrics(state()) -> metrics().
 gather_metrics(#state{storage = Storage} = State) ->
     {mg_core_storage_riak, StorageOptions} = mg_core_utils:separate_mod_opts(Storage),
-    case mg_storage_riak:pool_utilization(StorageOptions) of
+    case mg_core_storage_riak:pool_utilization(StorageOptions) of
         {ok, Metrics} ->
             KeyPrefix = build_key_prefix(State),
             [gauge([KeyPrefix, Key], Value) || {Key, Value} <- Metrics];
