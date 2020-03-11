@@ -45,7 +45,7 @@
   0},
  {<<"machinegun_core">>,
   {git,"https://github.com/rbkmoney/machinegun_core",
-       {ref,"17faf3acb6b0c1a2f6f78c69b65c5e5f1a4ef12c"}},
+       {ref,"cf9da505058a857c4dc89ca829653c64986612e9"}},
   0},
  {<<"metrics">>,{pkg,<<"metrics">>,<<"1.0.1">>},2},
  {<<"mg_proto">>,
