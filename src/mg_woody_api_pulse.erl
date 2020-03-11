@@ -16,7 +16,7 @@
 
 -module(mg_woody_api_pulse).
 
--include_lib("include/mg_woody_api/pulse.hrl").
+-include_lib("include/machinegun_woody_api/pulse.hrl").
 
 %% mg_pulse handler
 -behaviour(mg_core_pulse).

@@ -94,7 +94,7 @@ init_per_group(base, C) ->
                 hay_vm_handler
             ]}
         ]},
-        mg_woody_api
+        machinegun_woody_api
     ]),
     {ok, ProcessorPid} = mg_test_processor:start(
         {0, 0, 0, 0}, 8023,

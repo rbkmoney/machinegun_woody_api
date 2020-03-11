@@ -45,7 +45,7 @@ init_per_suite(C) ->
     Apps = mg_ct_helper:start_applications([
         {hackney      , [{use_default_pool, false}]},
         how_are_you,
-        mg_woody_api
+        machinegun_woody_api
     ]),
     % This mode is never referenced directly and need to be force-loaded
     % TODO look for more obvious solutions

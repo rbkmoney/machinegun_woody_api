@@ -121,20 +121,20 @@ get_events_machine(Namespace, Ref, HRange) ->
 -spec em_opts(scalar()) ->
     mg_core_events_machine:options().
 em_opts(Namespace) ->
-    mg_woody_api:events_machine_options(
+    machinegun_woody_api:events_machine_options(
         ns(Namespace),
-        application:get_all_env(mg_woody_api)
+        application:get_all_env(machinegun_woody_api)
     ).
 
 -spec m_opts(scalar()) ->
     mg_core_machine:options().
 m_opts(Namespace) ->
-    mg_woody_api:machine_options(ns(Namespace), ns_config(Namespace)).
+    machinegun_woody_api:machine_options(ns(Namespace), ns_config(Namespace)).
 
 -spec ns_config(scalar()) ->
     _Config.
 ns_config(Namespace) ->
-    maps:get(ns(Namespace), genlib_app:env(mg_woody_api, namespaces)).
+    maps:get(ns(Namespace), genlib_app:env(machinegun_woody_api, namespaces)).
 
 -spec ns(scalar()) ->
     mg_core:ns().

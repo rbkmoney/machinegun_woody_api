@@ -92,7 +92,7 @@ groups() ->
 init_per_suite(C) ->
     % dbg:tracer(),
     % dbg:p(all, c),
-    % dbg:tpl({mg_woody_api, '_', '_'}, x),
+    % dbg:tpl({machinegun_woody_api, '_', '_'}, x),
     Apps = mg_ct_helper:start_applications([gproc]),
     % Запускаем memory storage, который сможет "пережить" рестарты mg
     {ok, StoragePid} = mg_core_storage_memory:start_link(#{name => ?MODULE}),
@@ -148,7 +148,7 @@ end_per_group(_, _C) ->
 -spec start_mg_woody_api(group_name(), config()) ->
     config().
 start_mg_woody_api(Name, C) ->
-    Apps = mg_ct_helper:start_applications([mg_woody_api]),
+    Apps = mg_ct_helper:start_applications([machinegun_woody_api]),
     [
         {group_name        , Name},
         {group_apps        , Apps},

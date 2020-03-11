@@ -15,7 +15,7 @@
 %%%
 
 -module(mg_woody_api_utils).
--include_lib("include/mg_woody_api/pulse.hrl").
+-include_lib("include/machinegun_woody_api/pulse.hrl").
 -include_lib("mg_proto/include/mg_proto_state_processing_thrift.hrl").
 
 %% API

@@ -67,7 +67,7 @@ init_per_suite(C) ->
             {metrics_publishers, []},
             {metrics_handlers, []}
         ]},
-        mg_woody_api
+        machinegun_woody_api
     ]),
 
     [

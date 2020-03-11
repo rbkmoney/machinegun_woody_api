@@ -234,7 +234,7 @@ init_per_group(C) ->
     Config = mg_woody_api_config(C),
     Apps = mg_ct_helper:start_applications([
         brod,
-        {mg_woody_api, Config}
+        {machinegun_woody_api, Config}
     ]),
     % This mode is never referenced directly and need to be force-loaded
     {ok, ProcessorPid} = mg_test_processor:start(
@@ -772,7 +772,7 @@ config_with_multiple_event_sinks(_C) ->
     {ok, _Pid} = mg_core_utils_supervisor_wrapper:start_link(
         {local, mg_core_sup_does_nothing},
         #{strategy => rest_for_one},
-        mg_woody_api:child_specs(Config)
+        machinegun_woody_api:child_specs(Config)
     ),
     ok = mg_ct_helper:stop_applications([Apps]).
 
