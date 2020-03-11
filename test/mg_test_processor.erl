@@ -64,8 +64,8 @@
 %%
 -spec start(host_address(), integer(), options(), any()) ->
     mg_core_utils:gen_start_ret().
-start(Host, Port, Options, Config) ->
-    case start_link(Host, Port, Options, Config) of
+start(Host, Port, Options, MgWoodyApiConfig) ->
+    case start_link(Host, Port, Options, MgWoodyApiConfig) of
         {ok, ProcessorPid} ->
             true = erlang:unlink(ProcessorPid),
             {ok, ProcessorPid};
@@ -75,9 +75,10 @@ start(Host, Port, Options, Config) ->
 
 -spec start_link(host_address(), integer(), options(), any()) ->
     mg_core_utils:gen_start_ret().
-start_link(Host, Port, Options, Config) ->
+start_link(Host, Port, Options, MgWoodyApiConfig) ->
     Flags = #{strategy => one_for_all},
-    Woo = woody_server:child_spec(
+    ChildsSpecs = [
+        woody_server:child_spec(
             ?MODULE,
             #{
                 ip            => Host,
@@ -93,9 +94,8 @@ start_link(Host, Port, Options, Config) ->
                     Options
                 ))
             }
-    ),
-    ChildsSpecs = [Woo | mg_woody_api:child_specs(Config)],
-    ok = supervisor:check_childspecs(mg_woody_api:child_specs(Config)),
+        ) | mg_woody_api:child_specs(MgWoodyApiConfig)
+    ],
     mg_core_utils_supervisor_wrapper:start_link(Flags, ChildsSpecs).
 
 %%

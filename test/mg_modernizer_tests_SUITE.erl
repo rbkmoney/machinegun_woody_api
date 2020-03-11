@@ -110,7 +110,7 @@ end_per_suite(C) ->
     config().
 init_per_group(Name = legacy_activities, C0) ->
     Config = mg_woody_api_config(Name, C0),
-    C1 = start_mg_woody_api(Name, Config, C0),
+    C1 = start_mg_woody_api(Name, C0),
     {ok, ProcessorPid} = mg_test_processor:start(
         {0, 0, 0, 0}, 8023,
         genlib_map:compact(#{
@@ -121,7 +121,7 @@ init_per_group(Name = legacy_activities, C0) ->
     [{processor_pid, ProcessorPid} | C1];
 init_per_group(Name = modern_activities, C0) ->
     Config = mg_woody_api_config(Name, C0),
-    C1 = start_mg_woody_api(Name, Config, Config),
+    C1 = start_mg_woody_api(Name, C0),
     {ok, ProcessorPid} = mg_test_processor:start(
         {0, 0, 0, 0}, 8023,
         genlib_map:compact(#{
@@ -145,9 +145,9 @@ end_per_group(Name, C) when
 end_per_group(_, _C) ->
     ok.
 
--spec start_mg_woody_api(group_name(), any(), config()) ->
+-spec start_mg_woody_api(group_name(), config()) ->
     config().
-start_mg_woody_api(Name, Config, C) ->
+start_mg_woody_api(Name, C) ->
     Apps = mg_ct_helper:start_applications([mg_woody_api]),
     [
         {group_name        , Name},

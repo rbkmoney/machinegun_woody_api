@@ -203,6 +203,9 @@ groups() ->
 -spec init_per_suite(config()) ->
     config().
 init_per_suite(C) ->
+    % This mode is never referenced directly and need to be force-loaded
+    % TODO look for more obvious solutions
+    _ = code:load_file(mg_core_storage_memory),
     % dbg:tracer(), dbg:p(all, c),
     % dbg:tpl({mg_core_machine, retry_strategy, '_'}, x),
     C.
@@ -231,10 +234,9 @@ init_per_group(C) ->
     Config = mg_woody_api_config(C),
     Apps = mg_ct_helper:start_applications([
         brod,
-        mg_woody_api
+        {mg_woody_api, Config}
     ]),
     % This mode is never referenced directly and need to be force-loaded
-    _ = code:load_file(mg_core_storage_memory),
     {ok, ProcessorPid} = mg_test_processor:start(
         {0, 0, 0, 0}, 8023,
         genlib_map:compact(#{
@@ -767,10 +769,6 @@ config_with_multiple_event_sinks(_C) ->
         woody,
         how_are_you
     ]),
-    application:load(mg_woody_api),
-    _ = code:load_file(mg_core_storage_memory),
-    _ = code:load_file(mg_core_queue_timer),
-    _ = code:load_file(mg_core_queue_interrupted),
     {ok, _Pid} = mg_core_utils_supervisor_wrapper:start_link(
         {local, mg_core_sup_does_nothing},
         #{strategy => rest_for_one},
