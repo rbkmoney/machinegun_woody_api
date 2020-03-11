@@ -16,7 +16,7 @@
 
 -module(mg_ct_helper).
 
--define(CLIENT, mg_core_kafka_client).
+-define(CLIENT, mg_kafka_client).
 -define(BROKERS, [{"kafka1", 9092}, {"kafka2", 9092}, {"kafka3", 9092}]).
 
 -export([config/1]).
