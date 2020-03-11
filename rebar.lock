@@ -3,10 +3,6 @@
  {<<"brod">>,{pkg,<<"brod">>,<<"3.7.5">>},1},
  {<<"cache">>,{pkg,<<"cache">>,<<"2.2.0">>},1},
  {<<"certifi">>,{pkg,<<"certifi">>,<<"2.5.1">>},2},
- {<<"cg_mon">>,
-  {git,"https://github.com/rbkmoney/cg_mon",
-       {ref,"5a87a37694e42b6592d3b4164ae54e0e87e24e18"}},
-  0},
  {<<"consuela">>,
   {git,"https://github.com/rbkmoney/consuela",
        {ref,"206bad34c3b367251a0409459f4101be32377140"}},
@@ -87,10 +83,6 @@
  {<<"woody">>,
   {git,"https://github.com/rbkmoney/woody_erlang",
        {ref,"ce178d0232c2e7b710ab41a9b1b7d0ca912b2932"}},
-  0},
- {<<"yamerl">>,
-  {git,"https://github.com/rbkmoney/yamerl",
-       {ref,"573199f422d5920a6429dc1f75aa983706b83083"}},
   0}]}.
 [
 {pkg_hash,[
