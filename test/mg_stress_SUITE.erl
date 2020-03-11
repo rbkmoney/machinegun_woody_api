@@ -47,7 +47,7 @@ init_per_suite(C) ->
         how_are_you,
         machinegun_woody_api
     ]),
-    % This mode is never referenced directly and need to be force-loaded
+    % This module is never referenced directly and need to be force-loaded
     % TODO look for more obvious solutions
     _ = code:load_file(mg_core_storage_memory),
     CallFunc =

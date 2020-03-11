@@ -75,11 +75,6 @@
 -export([event_sink_incorrect_sink_id    /1]).
 -export([event_sink_lots_events_ordering /1]).
 
-%% mwc group tests
--export([mwc_get_statuses_distrib/1]).
--export([mwc_get_failed_machines /1]).
--export([mwc_get_machine         /1]).
--export([mwc_get_events_machine  /1]).
 %%
 
 -export([config_with_multiple_event_sinks/1]).
@@ -110,7 +105,6 @@ all() ->
         {group, repair    },
         {group, timers    },
         {group, event_sink},
-        {group, mwc       },
         {group, deadline  },
         config_with_multiple_event_sinks
     ].
@@ -185,15 +179,6 @@ groups() ->
             % event_sink_incorrect_event_id,
             event_sink_incorrect_sink_id,
             event_sink_lots_events_ordering
-        ]},
-
-        {mwc, [sequence], [
-            machine_start,
-            machine_processor_error,
-            mwc_get_statuses_distrib,
-            mwc_get_failed_machines,
-            mwc_get_machine,
-            mwc_get_events_machine
         ]}
     ].
 
@@ -217,8 +202,6 @@ end_per_suite(_C) ->
 
 -spec init_per_group(group_name(), config()) ->
     config().
-init_per_group(mwc, C) ->
-    init_per_group([{storage, mg_core_storage_memory} | C]);
 init_per_group(history, C) ->
     init_per_group([{storage, mg_core_storage_memory} | C]);
 init_per_group(_, C) ->
@@ -691,27 +674,6 @@ event_sink_lots_events_ordering(C) ->
         #{},
         Events
     ).
-
-% проверяем, что просто ничего не падает, для начала этого хватит
--spec mwc_get_statuses_distrib(config()) ->
-    _.
-mwc_get_statuses_distrib(_C) ->
-    _ = mwc:get_statuses_distrib(?NS).
-
--spec mwc_get_failed_machines(config()) ->
-    _.
-mwc_get_failed_machines(_C) ->
-    _ = mwc:get_failed_machines(?NS).
-
--spec mwc_get_machine(config()) ->
-    _.
-mwc_get_machine(_C) ->
-    _ = mwc:get_machine(?NS, ?ID).
-
--spec mwc_get_events_machine(config()) ->
-    _.
-mwc_get_events_machine(_C) ->
-    _ = mwc:get_events_machine(?NS, {id, ?ID}).
 
 -spec config_with_multiple_event_sinks(config()) ->
     _.
