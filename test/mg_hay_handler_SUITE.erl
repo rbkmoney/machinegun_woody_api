@@ -1,5 +1,5 @@
 %%%
-%%% Copyright 2018 RBKmoney
+%%% Copyright 2020 RBKmoney
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -91,7 +91,7 @@ init_per_group(base, C) ->
                 hay_vm_handler
             ]}
         ]},
-        {mg_woody_api, Config}
+        mg_woody_api
     ]),
     % This mode is never referenced directly and need to be force-loaded
     _ = code:load_file(mg_core_storage_memory),

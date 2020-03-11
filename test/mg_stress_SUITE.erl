@@ -1,5 +1,5 @@
 %%%
-%%% Copyright 2017 RBKmoney
+%%% Copyright 2020 RBKmoney
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ init_per_suite(C) ->
     Apps = mg_ct_helper:start_applications([
         {hackney      , [{use_default_pool, false}]},
         how_are_you,
-        {mg_woody_api, Config}
+        mg_woody_api
     ]),
     _ = code:load_file(mg_core_storage_memory),
     CallFunc =

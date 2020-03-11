@@ -1,5 +1,5 @@
 %%%
-%%% Copyright 2019 RBKmoney
+%%% Copyright 2020 RBKmoney
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -68,7 +68,7 @@ init_per_suite(C) ->
             {metrics_publishers, []},
             {metrics_handlers, []}
         ]},
-        {mg_woody_api, Config}
+        mg_woody_api
     ]),
 
     [

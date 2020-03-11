@@ -1,5 +1,5 @@
 %%%
-%%% Copyright 2017 RBKmoney
+%%% Copyright 2020 RBKmoney
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -231,7 +231,7 @@ init_per_group(C) ->
     Config = mg_woody_api_config(C),
     Apps = mg_ct_helper:start_applications([
         brod,
-        {mg_woody_api, Config}
+        mg_woody_api
     ]),
     % This mode is never referenced directly and need to be force-loaded
     _ = code:load_file(mg_core_storage_memory),
@@ -776,7 +776,6 @@ config_with_multiple_event_sinks(_C) ->
         #{strategy => rest_for_one},
         mg_woody_api:child_specs(Config)
     ),
-    % Apps = mg_ct_helper:start_applications([{mg_woody_api, Config}]),
     ok = mg_ct_helper:stop_applications([Apps]).
 
 %%

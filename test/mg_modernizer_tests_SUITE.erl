@@ -1,5 +1,5 @@
 %%%
-%%% Copyright 2017 RBKmoney
+%%% Copyright 2020 RBKmoney
 %%%
 %%% Licensed under the Apache License, Version 2.0 (the "License");
 %%% you may not use this file except in compliance with the License.
@@ -148,7 +148,7 @@ end_per_group(_, _C) ->
 -spec start_mg_woody_api(group_name(), any(), config()) ->
     config().
 start_mg_woody_api(Name, Config, C) ->
-    Apps = mg_ct_helper:start_applications([{mg_woody_api, Config}]),
+    Apps = mg_ct_helper:start_applications([mg_woody_api]),
     [
         {group_name        , Name},
         {group_apps        , Apps},
