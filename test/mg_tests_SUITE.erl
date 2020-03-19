@@ -188,9 +188,6 @@ groups() ->
 -spec init_per_suite(config()) ->
     config().
 init_per_suite(C) ->
-    % This module is never referenced directly and need to be force-loaded
-    % TODO look for more obvious solutions
-    _ = code:load_file(mg_core_storage_memory),
     % dbg:tracer(), dbg:p(all, c),
     % dbg:tpl({mg_core_machine, retry_strategy, '_'}, x),
     C.
