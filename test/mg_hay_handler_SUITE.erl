@@ -131,9 +131,9 @@ end_per_group(_, C) ->
 -spec mg_woody_api_config(config()) ->
     list().
 mg_woody_api_config(C) ->
-    [
-        {woody_server, #{ip => {0,0,0,0,0,0,0,0}, port => 8022, limits => #{}}},
-        {namespaces, #{
+    #{
+        woody_server => #{ip => {0,0,0,0,0,0,0,0}, port => 8022, limits => #{}},
+        namespaces => #{
             ?NS => #{
                 storage    => mg_core_storage_memory,
                 processor  => #{
@@ -154,13 +154,13 @@ mg_woody_api_config(C) ->
                 },
                 event_stash_size => 5
             }
-        }},
-        {event_sink_ns, #{
+        },
+        event_sink_ns => #{
             storage => mg_core_storage_memory,
             registry => registry(C),
             default_processing_timeout => 5000
-        }}
-    ].
+        }
+    }.
 
 -spec registry(config()) ->
     mg_core_procreg:options().

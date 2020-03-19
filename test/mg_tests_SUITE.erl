@@ -217,7 +217,7 @@ init_per_group(C) ->
     Config = mg_woody_api_config(C),
     Apps = mg_ct_helper:start_applications([
         brod,
-        {machinegun_woody_api, Config}
+        machinegun_woody_api
     ]),
     {ok, ProcessorPid} = mg_test_processor:start(
         {0, 0, 0, 0}, 8023,
@@ -313,16 +313,16 @@ mg_woody_api_config(C) ->
     Scheduler = #{
         task_quota => <<"scheduler_tasks_total">>
     },
-    [
-        {woody_server, #{ip => {0,0,0,0,0,0,0,0}, port => 8022, limits => #{}}},
-        {quotas, [
+    #{
+        woody_server => #{ip => {0,0,0,0,0,0,0,0}, port => 8022, limits => #{}},
+        quotas => [
             #{
                 name => <<"scheduler_tasks_total">>,
                 limit => #{ value => 10 },
                 update_interval => 100
             }
-        ]},
-        {namespaces, #{
+        ],
+        namespaces => #{
             ?NS => #{
                 storage    =>  ?config(storage, C),
                 processor  => #{
@@ -354,12 +354,12 @@ mg_woody_api_config(C) ->
                     }}
                 ]
             }
-        }},
-        {event_sink_ns, #{
+        },
+        event_sink_ns => #{
             storage => mg_core_storage_memory,
             default_processing_timeout => 5000
-        }}
-    ].
+        }
+    }.
 
 -spec end_per_group(group_name(), config()) ->
     ok.
@@ -678,9 +678,9 @@ event_sink_lots_events_ordering(C) ->
 -spec config_with_multiple_event_sinks(config()) ->
     _.
 config_with_multiple_event_sinks(_C) ->
-    Config = [
-        {woody_server, #{ip => {0,0,0,0,0,0,0,0}, port => 8022, limits => #{}}},
-        {namespaces, #{
+    Config = #{
+        woody_server => #{ip => {0,0,0,0,0,0,0,0}, port => 8022, limits => #{}},
+        namespaces => #{
             <<"1">> => #{
                 storage    => mg_core_storage_memory,
                 processor  => #{
@@ -719,12 +719,12 @@ config_with_multiple_event_sinks(_C) ->
                     }}
                 ]
             }
-        }},
-        {event_sink_ns, #{
+        },
+        event_sink_ns => #{
             storage => mg_core_storage_memory,
             default_processing_timeout => 5000
-        }}
-    ],
+        }
+    },
     Apps = mg_ct_helper:start_applications([
         brod,
         woody,
@@ -733,7 +733,7 @@ config_with_multiple_event_sinks(_C) ->
     {ok, _Pid} = mg_core_utils_supervisor_wrapper:start_link(
         {local, mg_core_sup_does_nothing},
         #{strategy => rest_for_one},
-        machinegun_woody_api:child_specs(Config)
+        mg_test_configurator:construct_child_specs(Config)
     ),
     ok = mg_ct_helper:stop_applications([Apps]).
 

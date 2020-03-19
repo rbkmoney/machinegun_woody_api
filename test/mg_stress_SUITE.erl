@@ -97,14 +97,14 @@ end_per_suite(C) ->
 -spec mg_woody_api_config(config()) ->
     list().
 mg_woody_api_config(_C) ->
-    [
-        {woody_server, #{
+    #{
+        woody_server => #{
             ip     => {0,0,0,0,0,0,0,0},
             port   => 8022,
             limits => #{},
             transport_opts => #{num_acceptors => 100}
-        }},
-        {namespaces, #{
+        },
+        namespaces => #{
             ?NS => #{
                 storage    => mg_core_storage_memory,
                 processor  => #{
@@ -119,12 +119,12 @@ mg_woody_api_config(_C) ->
                 event_sinks => [{mg_core_events_sink_machine, #{name => default, machine_id => ?ES_ID}}],
                 event_stash_size => 10
             }
-        }},
-        {event_sink_ns, #{
+        },
+        event_sink_ns => #{
             storage => mg_core_storage_memory,
             default_processing_timeout => 5000
-        }}
-    ].
+        }
+    }.
 
 
 -spec stress_test(config()) -> _.

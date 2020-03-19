@@ -161,14 +161,14 @@ start_mg_woody_api(Name, C) ->
 -spec mg_woody_api_config(atom(), config()) ->
     list().
 mg_woody_api_config(Name, C) ->
-    [
-        {woody_server, #{
+    #{
+        woody_server => #{
             ip       => {0,0,0,0,0,0,0,0},
             port     => 8022,
             net_opts => [],
             limits   => #{}
-        }},
-        {namespaces, #{
+        },
+        namespaces => #{
             ?NS => maps:merge(
                 #{
                     storage    => {mg_core_storage_memory, #{
@@ -196,12 +196,12 @@ mg_woody_api_config(Name, C) ->
                         }
                 end
             )
-        }},
-        {event_sink_ns, #{
+        },
+        event_sink_ns => #{
             storage => mg_core_storage_memory,
             default_processing_timeout => 5000
-        }}
-    ].
+        }
+    }.
 
 %%
 

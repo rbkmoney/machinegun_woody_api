@@ -94,7 +94,7 @@ start_link(Host, Port, Options, MgWoodyApiConfig) ->
                     Options
                 ))
             }
-        ) | machinegun_woody_api:child_specs(MgWoodyApiConfig)
+        ) | mg_test_configurator:construct_child_specs(MgWoodyApiConfig)
     ],
     mg_core_utils_supervisor_wrapper:start_link(Flags, ChildsSpecs).
 
