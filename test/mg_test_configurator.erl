@@ -44,14 +44,13 @@ construct_child_specs(#{
     event_sink_ns := EventSinkNS,
     namespaces    := Namespaces
 } = Config) ->
-    Quotas = maps:get(quotas, Config, []),
+    Quotas       = maps:get(quotas, Config, []),
     HealthChecks = maps:get(health_check, Config, #{}),
 
-    QuotasChSpec = quotas_child_specs(Quotas, quota),
-    EventSinkChSpec = event_sink_ns_child_spec(EventSinkNS, event_sink),
+    QuotasChSpec        = quotas_child_specs(Quotas, quota),
+    EventSinkChSpec     = event_sink_ns_child_spec(EventSinkNS, event_sink),
     EventMachinesChSpec = events_machines_child_specs(Namespaces, EventSinkNS),
-
-    WoodyServerChSpec = machinegun_woody_api:child_spec(
+    WoodyServerChSpec   = machinegun_woody_api:child_spec(
         WoodyServer,
         HealthChecks,
         api_automaton_options (Namespaces, EventSinkNS),
@@ -59,13 +58,12 @@ construct_child_specs(#{
         woody_server
     ),
 
-    QuotasChSpec
-    ++
-    [EventSinkChSpec]
-    ++
-    EventMachinesChSpec
-    ++
-    [WoodyServerChSpec].
+    lists:flatten([
+        EventSinkChSpec,
+        WoodyServerChSpec,
+        QuotasChSpec,
+        EventMachinesChSpec
+    ]).
 
 %%
 
