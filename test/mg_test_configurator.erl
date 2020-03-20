@@ -55,6 +55,7 @@ construct_child_specs(#{
         HealthChecks,
         api_automaton_options (Namespaces, EventSinkNS),
         api_event_sink_options(Namespaces, EventSinkNS),
+        mg_woody_api_test_pulse,
         woody_server
     ),
 
@@ -263,7 +264,7 @@ add_bucket_postfix(SubNS, {mg_core_storage_riak, #{bucket := Bucket} = Options})
 -spec pulse() ->
     mg_core_pulse:handler().
 pulse() ->
-    mg_woody_api_pulse.
+    mg_woody_api_test_pulse.
 
 -spec modernizer_options(modernizer() | undefined) ->
     #{modernizer => mg_core_events_modernizer:options()}.

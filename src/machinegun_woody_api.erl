@@ -21,7 +21,7 @@
 -module(machinegun_woody_api).
 
 %% API
--export([child_spec/5]).
+-export([child_spec/6]).
 
 %%
 %% API
@@ -41,9 +41,9 @@
 
 -type event_sink() :: mg_woody_api_event_sink:options().
 
--spec child_spec(woody_server(), erl_health:check(), automaton(), event_sink(), term()) ->
+-spec child_spec(woody_server(), erl_health:check(), automaton(), event_sink(), module(), term()) ->
     supervisor:child_spec().
-child_spec(WoodyConfig, HealthCheck, Automaton, EventSink, ID) ->
+child_spec(WoodyConfig, HealthCheck, Automaton, EventSink, PulseHandler, ID) ->
     HealthRoute = erl_health_handle:get_route(enable_health_logging(HealthCheck)),
     woody_server:child_spec(
         ID,
@@ -54,7 +54,7 @@ child_spec(WoodyConfig, HealthCheck, Automaton, EventSink, ID) ->
             port           => maps:get(port           , WoodyConfig),
             transport_opts => maps:get(transport_opts , WoodyConfig, #{}),
             protocol_opts  => maps:get(protocol_opts  , WoodyConfig, #{}),
-            event_handler  => {mg_woody_api_event_handler, pulse()},
+            event_handler  => {mg_woody_api_event_handler, PulseHandler},
             handler_limits => maps:get(limits         , WoodyConfig, #{}),
             handlers       => [
                 mg_woody_api_automaton :handler(Automaton),
@@ -69,8 +69,3 @@ child_spec(WoodyConfig, HealthCheck, Automaton, EventSink, ID) ->
 enable_health_logging(Check) ->
     EvHandler = {erl_health_event_handler, []},
     maps:map(fun (_, V = {_, _, _}) -> #{runner => V, event_handler => EvHandler} end, Check).
-
--spec pulse() ->
-    mg_core_pulse:handler().
-pulse() ->
-    mg_woody_api_pulse.

@@ -83,7 +83,7 @@ start_link(Host, Port, Options, MgWoodyApiConfig) ->
             #{
                 ip            => Host,
                 port          => Port,
-                event_handler => {mg_woody_api_event_handler, mg_woody_api_pulse},
+                event_handler => {mg_woody_api_event_handler, mg_woody_api_test_pulse},
                 handlers      => maps:values(maps:map(
                     fun
                         (processor, {Path, Functions}) ->

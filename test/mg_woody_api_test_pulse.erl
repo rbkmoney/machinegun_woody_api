@@ -14,30 +14,20 @@
 %%% limitations under the License.
 %%%
 
--module(mg_woody_api_pulse).
+-module(mg_woody_api_test_pulse).
 
+-include_lib("machinegun_core/include/pulse.hrl").
 -include_lib("include/machinegun_woody_api/pulse.hrl").
 
 %% mg_pulse handler
 -behaviour(mg_core_pulse).
 -export([handle_beat/2]).
 
-%% pulse types
--type beat() ::
-      mg_core_pulse:beat()
-    | mg_core_consuela_pulse_adapter:beat()
-    | mg_core_queue_scanner:beat()
-    | #woody_event{}
-    | #woody_request_handle_error{}.
-
--export_type([beat/0]).
-
 %%
 %% mg_pulse handler
 %%
 
--spec handle_beat(undefined, beat()) ->
+-spec handle_beat(undefined, term()) ->
     ok.
-handle_beat(Options, Beat) ->
-    ok = mg_woody_api_pulse_log:handle_beat(Options, Beat),
-    ok = mg_woody_api_pulse_metric:handle_beat(Options, Beat).
+handle_beat(_, _) ->
+    ok.
