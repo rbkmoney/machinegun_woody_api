@@ -89,14 +89,13 @@ events_machines_child_specs(NSs, EventSinkNS) ->
 -spec events_machine_options(mg_core:ns(), _, config()) ->
     mg_core_events_machine:options().
 events_machine_options(NS, NSs, EventSinkNS) ->
-    % NSs = proplists:get_value(namespaces, Config),
     NSConfigs = maps:get(NS, NSs),
     #{processor := ProcessorConfig, storage := Storage} = NSConfigs,
     EventSinks = [
         event_sink_options(SinkConfig, EventSinkNS)
         || SinkConfig <- maps:get(event_sinks, NSConfigs, [])
     ],
-    EventsStorage = add_storage_metrics(NS, events, sub_storage_options(<<"events">>, Storage)),
+    EventsStorage = sub_storage_options(<<"events">>, Storage),
     #{
         namespace                  => NS,
         processor                  => processor(ProcessorConfig),
@@ -120,7 +119,7 @@ machine_options(NS, Config) ->
         ],
         Config
     ),
-    MachinesStorage = add_storage_metrics(NS, machines, sub_storage_options(<<"machines">>, Storage)),
+    MachinesStorage = sub_storage_options(<<"machines">>, Storage),
     Options#{
         namespace           => NS,
         storage             => MachinesStorage,
@@ -183,10 +182,9 @@ collect_event_sink_machines(NSs) ->
 -spec event_sink_namespace_options(config()) ->
     mg_core_events_sink_machine:ns_options().
 event_sink_namespace_options(#{storage := Storage} = EventSinkNS) ->
-    % EventSinkNS = #{storage := Storage} = proplists:get_value(event_sink_ns, Config),
     NS = <<"_event_sinks">>,
-    MachinesStorage = add_storage_metrics(NS, machines, sub_storage_options(<<"machines">>, Storage)),
-    EventsStorage = add_storage_metrics(NS, events, sub_storage_options(<<"events">>, Storage)),
+    MachinesStorage = sub_storage_options(<<"machines">>, Storage),
+    EventsStorage = sub_storage_options(<<"events">>, Storage),
     EventSinkNS#{
         namespace        => NS,
         pulse            => pulse(),
@@ -201,7 +199,7 @@ worker_manager_options(Config) ->
     maps:merge(
         #{
             registry => mg_core_procreg_gproc,
-            sidecar  => mg_woody_api_hay
+            sidecar  => mg_woody_api_test_worker
         },
         maps:get(worker, Config, #{})
     ).
@@ -211,7 +209,7 @@ worker_manager_options(Config) ->
 tags_options(NS, #{retries := Retries, storage := Storage} = Config) ->
     TagsNS = mg_core_utils:concatenate_namespaces(NS, <<"tags">>),
     % по логике тут должен быть sub namespace, но его по историческим причинам нет
-    TagsStorage = add_storage_metrics(TagsNS, tags, Storage),
+    TagsStorage =  mg_core_utils:separate_mod_opts(Storage, #{}),
     #{
         namespace => TagsNS,
         storage   => TagsStorage,
@@ -224,30 +222,6 @@ tags_options(NS, #{retries := Retries, storage := Storage} = Config) ->
     mg_core_utils:mod_opts().
 processor(Processor) ->
     {mg_woody_api_processor, Processor#{event_handler => {mg_woody_api_event_handler, pulse()}}}.
-
--spec add_storage_metrics(mg_core:ns(), _type, mg_core_machine:storage_options()) ->
-    mg_core_machine:storage_options().
-add_storage_metrics(NS, Type, Storage0) ->
-    Storage1 = mg_core_utils:separate_mod_opts(Storage0, #{}),
-    do_add_storage_metrics(NS, Type, Storage1).
-
--spec do_add_storage_metrics(mg_core:ns(), atom(), mg_core_machine:storage_options()) ->
-    mg_core_machine:storage_options().
-do_add_storage_metrics(_NS, _Type, {mg_core_storage_memory, _} = Storage) ->
-    Storage;
-do_add_storage_metrics(NS, Type, {mg_core_storage_riak, Options}) ->
-    PoolOptions = maps:get(pool_options, Options, #{}),
-    NewOptions = Options#{
-        sidecar => {mg_woody_api_riak_metric, #{
-            namespace => NS,
-            type => Type
-        }},
-        pool_options => PoolOptions#{
-            metrics_mod => mg_woody_api_riak_metric,
-            metrics_api => exometer
-        }
-    },
-    {mg_core_storage_riak, NewOptions}.
 
 -spec sub_storage_options(mg_core:ns(), mg_core_machine:storage_options()) ->
     mg_core_machine:storage_options().

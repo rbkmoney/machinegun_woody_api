@@ -724,8 +724,7 @@ config_with_multiple_event_sinks(_C) ->
     },
     Apps = mg_ct_helper:start_applications([
         brod,
-        woody,
-        how_are_you
+        woody
     ]),
     {ok, _Pid} = mg_core_utils_supervisor_wrapper:start_link(
         {local, mg_core_sup_does_nothing},

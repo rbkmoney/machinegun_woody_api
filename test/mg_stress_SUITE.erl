@@ -44,7 +44,6 @@ init_per_suite(C) ->
     Config = mg_woody_api_config(C),
     Apps = mg_ct_helper:start_applications([
         {hackney      , [{use_default_pool, false}]},
-        how_are_you,
         machinegun_woody_api
     ]),
     CallFunc =
