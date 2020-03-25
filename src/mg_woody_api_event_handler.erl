@@ -16,7 +16,7 @@
 
 -module(mg_woody_api_event_handler).
 
--include_lib("include/machinegun_woody_api/pulse.hrl").
+-include_lib("machinegun_woody_api/include/pulse.hrl").
 
 %% woody_event_handler callbacks
 -behaviour(woody_event_handler).
