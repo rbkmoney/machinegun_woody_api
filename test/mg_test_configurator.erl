@@ -51,12 +51,14 @@ construct_child_specs(#{
     EventSinkChSpec     = event_sink_ns_child_spec(EventSinkNS, event_sink),
     EventMachinesChSpec = events_machines_child_specs(Namespaces, EventSinkNS),
     WoodyServerChSpec   = machinegun_woody_api:child_spec(
-        WoodyServer,
-        HealthChecks,
-        api_automaton_options (Namespaces, EventSinkNS),
-        api_event_sink_options(Namespaces, EventSinkNS),
-        mg_woody_api_test_pulse,
-        woody_server
+        woody_server,
+        #{
+            woody_server => WoodyServer,
+            health_check => HealthChecks,
+            automaton    => api_automaton_options (Namespaces, EventSinkNS),
+            event_sink   => api_event_sink_options(Namespaces, EventSinkNS),
+            pulse        => mg_woody_api_test_pulse
+        }
     ),
 
     lists:flatten([

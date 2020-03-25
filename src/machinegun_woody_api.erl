@@ -21,7 +21,7 @@
 -module(machinegun_woody_api).
 
 %% API
--export([child_spec/6]).
+-export([child_spec/2]).
 
 %%
 %% API
@@ -41,9 +41,24 @@
 
 -type event_sink() :: mg_woody_api_event_sink:options().
 
--spec child_spec(woody_server(), erl_health:check(), automaton(), event_sink(), module(), term()) ->
+-type options() :: #{
+    woody_server := woody_server(),
+    health_check := erl_health:check(),
+    automaton    := automaton(),
+    event_sink   := event_sink(),
+    pulse        := module()
+}.
+
+-spec child_spec(term(), options()) ->
     supervisor:child_spec().
-child_spec(WoodyConfig, HealthCheck, Automaton, EventSink, PulseHandler, ID) ->
+child_spec(ID, Options) ->
+    #{
+        woody_server := WoodyConfig,
+        health_check := HealthCheck,
+        automaton    := Automaton,
+        event_sink   := EventSink,
+        pulse        := PulseHandler
+    } = Options,
     HealthRoute = erl_health_handle:get_route(enable_health_logging(HealthCheck)),
     woody_server:child_spec(
         ID,
