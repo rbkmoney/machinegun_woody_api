@@ -126,7 +126,7 @@ end_per_group(_, C) ->
     C.
 
 -spec mg_woody_api_config(config()) ->
-    list().
+    map().
 mg_woody_api_config(C) ->
     #{
         woody_server => #{ip => {0,0,0,0,0,0,0,0}, port => 8022, limits => #{}},

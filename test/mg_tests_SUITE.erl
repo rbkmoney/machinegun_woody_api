@@ -305,7 +305,7 @@ content(Body) ->
     {#{format_version => 42}, Body}.
 
 -spec mg_woody_api_config(config()) ->
-    list().
+    map().
 mg_woody_api_config(C) ->
     Scheduler = #{
         task_quota => <<"scheduler_tasks_total">>

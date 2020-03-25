@@ -159,7 +159,7 @@ start_mg_woody_api(Name, C) ->
     ].
 
 -spec mg_woody_api_config(atom(), config()) ->
-    list().
+    map().
 mg_woody_api_config(Name, C) ->
     #{
         woody_server => #{

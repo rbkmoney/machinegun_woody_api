@@ -92,7 +92,7 @@ end_per_suite(C) ->
     mg_ct_helper:stop_applications(?config(apps, C)).
 
 -spec mg_woody_api_config(config()) ->
-    list().
+    map().
 mg_woody_api_config(_C) ->
     #{
         woody_server => #{
