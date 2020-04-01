@@ -25,7 +25,6 @@
         rfc3339,
         mg_proto,
         woody,
-        bear,
         erl_health,
         machinegun_core
     ]},
