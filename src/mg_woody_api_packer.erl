@@ -40,6 +40,7 @@ pack(integer, Integer) when is_integer(Integer) ->
 pack(timestamp_s, Timestamp) when is_integer(Timestamp) ->
     genlib_rfc3339:format(Timestamp, second);
 pack(timestamp_ns, Timestamp) when is_integer(Timestamp) ->
+    %% RFC3339 standard uses microsecons not nanoseconds.
     %% Actually rfc3339:format/2 force conversion of nanoseconds
     %% to microseconds, while system formatter does not,
     %% so force microseconds here for backward compatibility
