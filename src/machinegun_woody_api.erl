@@ -60,6 +60,7 @@ child_spec(ID, Options) ->
         pulse        := PulseHandler
     } = Options,
     HealthRoute = erl_health_handle:get_route(enable_health_logging(HealthCheck)),
+    MetricsRoute = get_prometheus_route(),
     woody_server:child_spec(
         ID,
         #{
@@ -75,7 +76,7 @@ child_spec(ID, Options) ->
                 mg_woody_api_automaton :handler(Automaton),
                 mg_woody_api_event_sink:handler(EventSink)
             ],
-            additional_routes => [HealthRoute]
+            additional_routes => [HealthRoute, MetricsRoute]
         }
     ).
 
@@ -84,3 +85,7 @@ child_spec(ID, Options) ->
 enable_health_logging(Check) ->
     EvHandler = {erl_health_event_handler, []},
     maps:map(fun (_, V = {_, _, _}) -> #{runner => V, event_handler => EvHandler} end, Check).
+
+-spec get_prometheus_route() -> {iodata(), module(), _Opts :: any()}.
+get_prometheus_route() ->
+    {"/metrics/[:registry]", prometheus_cowboy2_handler, []}.

@@ -25,6 +25,7 @@
         mg_proto,
         woody,
         erl_health,
+        prometheus_cowboy,
         machinegun_core
     ]},
     {env, []},
