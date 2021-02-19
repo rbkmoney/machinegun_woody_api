@@ -25,8 +25,7 @@
 
 %%
 
--spec modernizer_child_spec(options()) ->
-    supervisor:child_spec().
+-spec modernizer_child_spec(options()) -> supervisor:child_spec().
 modernizer_child_spec(Options) ->
     woody_client:child_spec(Options).
 

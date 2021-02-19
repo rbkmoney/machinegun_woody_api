@@ -32,8 +32,7 @@
 %%
 -type options() :: {[mg_core:id()], mg_core_events_sink_machine:ns_options()}.
 
--spec handler(options()) ->
-    mg_woody_api_utils:woody_handler().
+-spec handler(options()) -> mg_woody_api_utils:woody_handler().
 handler(Options) ->
     {"/v1/event_sink", {{mg_proto_state_processing_thrift, 'EventSink'}, {?MODULE, Options}}}.
 
@@ -50,7 +49,12 @@ handle_function('GetHistory', {EventSinkID, Range}, WoodyContext, {AvaliableEven
     Deadline = mg_woody_api_utils:get_deadline(WoodyContext, DefaultDeadline),
     SinkHistory =
         mg_woody_api_utils:handle_error(
-            #{namespace => undefined, machine_ref => EventSinkID, request_context => ReqCtx, deadline => Deadline},
+            #{
+                namespace => undefined,
+                machine_ref => EventSinkID,
+                request_context => ReqCtx,
+                deadline => Deadline
+            },
             fun() ->
                 _ = check_event_sink(AvaliableEventSinks, EventSinkID),
                 mg_core_events_sink_machine:get_history(
@@ -67,24 +71,24 @@ handle_function('GetHistory', {EventSinkID, Range}, WoodyContext, {AvaliableEven
 %% events_sink events encoder
 %%
 
--spec serialize(mg_core:ns(), mg_core:id(), mg_core_events:event()) ->
-    iodata().
+-spec serialize(mg_core:ns(), mg_core:id(), mg_core_events:event()) -> iodata().
 
 serialize(SourceNS, SourceID, Event) ->
     Codec = thrift_strict_binary_codec:new(),
     #{
-        id         := EventID,
+        id := EventID,
         created_at := CreatedAt,
-        body       := {Metadata, Content}
+        body := {Metadata, Content}
     } = Event,
-    Data = {event, #mg_evsink_MachineEvent{
-        source_ns = SourceNS,
-        source_id = SourceID,
-        event_id = EventID,
-        created_at = mg_woody_api_packer:pack(timestamp_ns, CreatedAt),
-        format_version = maps:get(format_version, Metadata, undefined),
-        data = mg_woody_api_packer:pack(opaque, Content)
-    }},
+    Data =
+        {event, #mg_evsink_MachineEvent{
+            source_ns = SourceNS,
+            source_id = SourceID,
+            event_id = EventID,
+            created_at = mg_woody_api_packer:pack(timestamp_ns, CreatedAt),
+            format_version = maps:get(format_version, Metadata, undefined),
+            data = mg_woody_api_packer:pack(opaque, Content)
+        }},
     Type = {struct, union, {mg_proto_event_sink_thrift, 'SinkEvent'}},
     case thrift_strict_binary_codec:write(Codec, Type, Data) of
         {ok, NewCodec} ->
@@ -97,8 +101,7 @@ serialize(SourceNS, SourceID, Event) ->
 %% Internals
 %%
 
--spec check_event_sink([mg_core:id()], mg_core:id()) ->
-    ok | no_return().
+-spec check_event_sink([mg_core:id()], mg_core:id()) -> ok | no_return().
 check_event_sink(AvaliableEventSinks, EventSinkID) ->
     case lists:member(EventSinkID, AvaliableEventSinks) of
         true ->
@@ -107,7 +110,6 @@ check_event_sink(AvaliableEventSinks, EventSinkID) ->
             throw({logic, event_sink_not_found})
     end.
 
--spec pulse(mg_core_events_sink_machine:ns_options()) ->
-    mg_core_pulse:handler().
+-spec pulse(mg_core_events_sink_machine:ns_options()) -> mg_core_pulse:handler().
 pulse(#{pulse := Pulse}) ->
     Pulse.

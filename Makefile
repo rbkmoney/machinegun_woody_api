@@ -40,6 +40,8 @@ CALL_ANYWHERE := \
 	compile \
 	xref \
 	lint \
+	format \
+	check_format \
 	dialyze \
 	start \
 	clean \
@@ -73,6 +75,12 @@ xref: submodules
 lint:
 	elvis rock
 
+check_format:
+	$(REBAR) fmt -c
+
+format:
+	$(REBAR) fmt -w
+
 dialyze:
 	$(REBAR) dialyzer
 
@@ -81,7 +89,7 @@ clean:
 
 distclean:
 	$(REBAR) clean -a
-	rm -rfv _build _builds _cache _steps _temp
+	rm -rfv _build
 
 # CALL_W_CONTAINER
 test: submodules
