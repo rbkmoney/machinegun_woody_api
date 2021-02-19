@@ -28,12 +28,12 @@
 -spec get_history(options(), mg_core:id(), mg_proto_state_processing_thrift:'HistoryRange'()) ->
     mg_proto_state_processing_thrift:'SinkHistory'().
 get_history(BaseURL, EventSinkID, Range) ->
-    call_service(BaseURL, 'GetHistory', [EventSinkID, Range]).
+    call_service(BaseURL, 'GetHistory', {EventSinkID, Range}).
 
 %%
 %% local
 %%
--spec call_service(_BaseURL, atom(), [_arg]) ->
+-spec call_service(_BaseURL, atom(), woody:args()) ->
     _.
 call_service(BaseURL, Function, Args) ->
     WR = woody_client:call(

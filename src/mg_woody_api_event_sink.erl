@@ -43,7 +43,7 @@ handler(Options) ->
 -spec handle_function(woody:func(), woody:args(), woody_context:ctx(), options()) ->
     {ok, _Result} | no_return().
 
-handle_function('GetHistory', [EventSinkID, Range], WoodyContext, {AvaliableEventSinks, Options}) ->
+handle_function('GetHistory', {EventSinkID, Range}, WoodyContext, {AvaliableEventSinks, Options}) ->
     ReqCtx = mg_woody_api_utils:woody_context_to_opaque(WoodyContext),
     DefaultTimeout = maps:get(default_processing_timeout, Options),
     DefaultDeadline = mg_core_deadline:from_timeout(DefaultTimeout),
@@ -71,8 +71,7 @@ handle_function('GetHistory', [EventSinkID, Range], WoodyContext, {AvaliableEven
     iodata().
 
 serialize(SourceNS, SourceID, Event) ->
-    {ok, Trans} = thrift_membuffer_transport:new(),
-    {ok, Proto} = thrift_binary_protocol:new(Trans, [{strict_read, true}, {strict_write, true}]),
+    Codec = thrift_strict_binary_codec:new(),
     #{
         id         := EventID,
         created_at := CreatedAt,
@@ -87,11 +86,10 @@ serialize(SourceNS, SourceID, Event) ->
         data = mg_woody_api_packer:pack(opaque, Content)
     }},
     Type = {struct, union, {mg_proto_event_sink_thrift, 'SinkEvent'}},
-    case thrift_protocol:write(Proto, {Type, Data}) of
-        {NewProto, ok} ->
-            {_, {ok, Result}} = thrift_protocol:close_transport(NewProto),
-            Result;
-        {_NewProto, {error, Reason}} ->
+    case thrift_strict_binary_codec:write(Codec, Type, Data) of
+        {ok, NewCodec} ->
+            thrift_strict_binary_codec:close(NewCodec);
+        {error, Reason} ->
             erlang:error({?MODULE, Reason})
     end.
 

@@ -34,6 +34,6 @@ modernizer_child_spec(Options) ->
     mg_core_events_modernizer:modernized_event_body().
 modernize_event(Options, WoodyContext, MachineEvent) ->
     Service = {mg_proto_state_processing_thrift, 'Modernizer'},
-    Args = [mg_woody_api_packer:pack(machine_event, MachineEvent)],
+    Args = {mg_woody_api_packer:pack(machine_event, MachineEvent)},
     {ok, Result} = woody_client:call({Service, 'ModernizeEvent', Args}, Options, WoodyContext),
     mg_woody_api_packer:unpack(modernize_result, Result).

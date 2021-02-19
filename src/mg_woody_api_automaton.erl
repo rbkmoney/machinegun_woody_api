@@ -47,7 +47,7 @@ handler(Options) ->
 -spec handle_function(woody:func(), woody:args(), woody_context:ctx(), options()) ->
     {ok, _Result} | no_return().
 
-handle_function('Start', [NS, ID_, Args], WoodyContext, Options) ->
+handle_function('Start', {NS, ID_, Args}, WoodyContext, Options) ->
     ID = unpack(id, ID_),
     ReqCtx = mg_woody_api_utils:woody_context_to_opaque(WoodyContext),
     Deadline = get_deadline(NS, WoodyContext, Options),
@@ -62,7 +62,7 @@ handle_function('Start', [NS, ID_, Args], WoodyContext, Options) ->
         ),
     {ok, ok};
 
-handle_function('Repair', [MachineDesc, Args], WoodyContext, Options) ->
+handle_function('Repair', {MachineDesc, Args}, WoodyContext, Options) ->
     ReqCtx = mg_woody_api_utils:woody_context_to_opaque(WoodyContext),
     {NS, Ref, Range} = unpack(machine_descriptor, MachineDesc),
     Deadline = get_deadline(NS, WoodyContext, Options),
@@ -83,7 +83,7 @@ handle_function('Repair', [MachineDesc, Args], WoodyContext, Options) ->
             woody_error:raise(business, pack(repair_error, Reason))
     end;
 
-handle_function('SimpleRepair', [NS, Ref_], WoodyContext, Options) ->
+handle_function('SimpleRepair', {NS, Ref_}, WoodyContext, Options) ->
     Deadline = get_deadline(NS, WoodyContext, Options),
     ReqCtx = mg_woody_api_utils:woody_context_to_opaque(WoodyContext),
     Ref = unpack(ref, Ref_),
@@ -98,7 +98,7 @@ handle_function('SimpleRepair', [NS, Ref_], WoodyContext, Options) ->
         ),
     {ok, ok};
 
-handle_function('Call', [MachineDesc, Args], WoodyContext, Options) ->
+handle_function('Call', {MachineDesc, Args}, WoodyContext, Options) ->
     ReqCtx = mg_woody_api_utils:woody_context_to_opaque(WoodyContext),
     {NS, Ref, Range} = unpack(machine_descriptor, MachineDesc),
     Deadline = get_deadline(NS, WoodyContext, Options),
@@ -114,7 +114,7 @@ handle_function('Call', [MachineDesc, Args], WoodyContext, Options) ->
         ),
     {ok, pack(call_response, Response)};
 
-handle_function('GetMachine', [MachineDesc], WoodyContext, Options) ->
+handle_function('GetMachine', {MachineDesc}, WoodyContext, Options) ->
     ReqCtx = mg_woody_api_utils:woody_context_to_opaque(WoodyContext),
     {NS, Ref, Range} = unpack(machine_descriptor, MachineDesc),
     Deadline = get_deadline(NS, WoodyContext, Options),
@@ -130,7 +130,7 @@ handle_function('GetMachine', [MachineDesc], WoodyContext, Options) ->
         ),
     {ok, pack(machine, History)};
 
-handle_function('Remove', [NS, ID_], WoodyContext, Options) ->
+handle_function('Remove', {NS, ID_}, WoodyContext, Options) ->
     ID = unpack(id, ID_),
     Deadline = get_deadline(NS, WoodyContext, Options),
     ReqCtx = mg_woody_api_utils:woody_context_to_opaque(WoodyContext),
@@ -145,7 +145,7 @@ handle_function('Remove', [NS, ID_], WoodyContext, Options) ->
         ),
     {ok, ok};
 
-handle_function('Modernize', [MachineDesc], WoodyContext, Options) ->
+handle_function('Modernize', {MachineDesc}, WoodyContext, Options) ->
     {NS, Ref, Range} = unpack(machine_descriptor, MachineDesc),
     Deadline = get_deadline(NS, WoodyContext, Options),
     ReqCtx = mg_woody_api_utils:woody_context_to_opaque(WoodyContext),

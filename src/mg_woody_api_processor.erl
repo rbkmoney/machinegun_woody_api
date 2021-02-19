@@ -45,7 +45,7 @@ process_signal(Options, ReqCtx, Deadline, {Signal, Machine}) ->
             ReqCtx,
             Deadline,
             'ProcessSignal',
-            [mg_woody_api_packer:pack(signal_args, {Signal, Machine})]
+            {mg_woody_api_packer:pack(signal_args, {Signal, Machine})}
         ),
     mg_woody_api_packer:unpack(signal_result, SignalResult).
 
@@ -61,7 +61,7 @@ process_call(Options, ReqCtx, Deadline, {Call, Machine}) ->
             ReqCtx,
             Deadline,
             'ProcessCall',
-            [mg_woody_api_packer:pack(call_args, {Call, Machine})]
+            {mg_woody_api_packer:pack(call_args, {Call, Machine})}
         ),
     mg_woody_api_packer:unpack(call_result, CallResult).
 
@@ -77,7 +77,7 @@ process_repair(Options, ReqCtx, Deadline, {Args, Machine}) ->
             ReqCtx,
             Deadline,
             'ProcessRepair',
-            [mg_woody_api_packer:pack(repair_args, {Args, Machine})]
+            {mg_woody_api_packer:pack(repair_args, {Args, Machine})}
         ),
     case RepairResult of
         {ok, Result} ->
@@ -86,7 +86,7 @@ process_repair(Options, ReqCtx, Deadline, {Args, Machine}) ->
             {error, {failed, mg_woody_api_packer:unpack(repair_error, Error)}}
     end.
 
--spec call_processor(options(), mg_core_events_machine:request_context(), mg_core_deadline:deadline(), atom(), list(_)) ->
+-spec call_processor(options(), mg_core_events_machine:request_context(), mg_core_deadline:deadline(), atom(), woody:args()) ->
     {ok, term()} | {error, mg_proto_state_processing_thrift:'RepairFailed'()}.
 call_processor(Options, ReqCtx, Deadline, Function, Args) ->
     % TODO сделать нормально!
