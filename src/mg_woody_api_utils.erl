@@ -53,8 +53,12 @@ handle_error(Ctx, F, Pulse) ->
     catch
         throw:Error:ST ->
             Exception = {throw, Error, ST},
-            #{namespace := NS, machine_ref := Ref, request_context := ReqCtx, deadline := Deadline} =
-                Ctx,
+            #{
+                namespace := NS,
+                machine_ref := Ref,
+                request_context := ReqCtx,
+                deadline := Deadline
+            } = Ctx,
             ok = mg_core_pulse:handle_beat(Pulse, #woody_request_handle_error{
                 namespace = NS,
                 machine_ref = Ref,

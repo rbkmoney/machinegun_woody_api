@@ -454,7 +454,11 @@ pack_opaque(Binary) when is_binary(Binary) ->
     {bin, Binary};
 pack_opaque(Object) when is_map(Object) ->
     {obj,
-        maps:fold(fun(K, V, Acc) -> maps:put(pack_opaque(K), pack_opaque(V), Acc) end, #{}, Object)};
+        maps:fold(
+            fun(K, V, Acc) -> maps:put(pack_opaque(K), pack_opaque(V), Acc) end,
+            #{},
+            Object
+        )};
 pack_opaque(Array) when is_list(Array) ->
     {arr, lists:map(fun pack_opaque/1, Array)};
 pack_opaque(Arg) ->

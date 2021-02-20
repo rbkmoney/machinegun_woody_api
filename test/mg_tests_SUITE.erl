@@ -82,8 +82,8 @@
 -define(NS, <<"NS">>).
 -define(ID, <<"ID">>).
 -define(EMPTY_ID, <<"">>).
--define(Tag, <<"tag">>).
--define(Ref, {tag, ?Tag}).
+-define(TAG, <<"tag">>).
+-define(REF, {tag, ?TAG}).
 -define(ES_ID, <<"test_event_sink_2">>).
 
 -define(DEADLINE_TIMEOUT, 1000).
@@ -197,8 +197,9 @@ init_per_group(history, C) ->
     init_per_group([{storage, mg_core_storage_memory} | C]);
 init_per_group(_, C) ->
     % NOTE
-    % Даже такой небольшой шанс может сработать в ситуациях, когда мы в процессоре выгребаем большой кусок
-    % истории машины, из-за чего реальная вероятность зафейлить операцию равна (1 - (1 - p) ^ n).
+    % Даже такой небольшой шанс может сработать в ситуациях, когда мы в процессоре выгребаем
+    % большой кусок истории машины, из-за чего реальная вероятность зафейлить операцию равна
+    % (1 - (1 - p) ^ n).
     init_per_group([{storage, {mg_core_storage_memory, #{random_transient_fail => 0.01}}} | C]).
 
 -spec init_per_group(config()) -> config().
@@ -335,8 +336,8 @@ mg_woody_api_config(C) ->
                     storage => {exponential, infinity, 1, 10},
                     timers => {exponential, infinity, 1, 10}
                 },
-                % сейчас существуют проблемы, которые не дают включить на постоянной основе эту опцию
-                % (а очень хочется, чтобы проверять работоспособность идемпотентных ретраев)
+                % сейчас существуют проблемы, которые не дают включить на постоянной основе эту
+                % опцию (а очень хочется, чтобы проверять работоспособность идемпотентных ретраев)
                 % TODO в будущем нужно это сделать
                 % сейчас же можно иногда включать и смотреть
                 % suicide_probability => 0.1,
@@ -370,13 +371,13 @@ end_per_group(_, C) ->
 -spec namespace_not_found(config()) -> _.
 namespace_not_found(C) ->
     Opts = maps:update(ns, <<"incorrect_NS">>, automaton_options(C)),
-    #mg_stateproc_NamespaceNotFound{} = (catch mg_automaton_client:start(Opts, ?ID, ?Tag)).
+    #mg_stateproc_NamespaceNotFound{} = (catch mg_automaton_client:start(Opts, ?ID, ?TAG)).
 
 -spec machine_start_empty_id(config()) -> _.
 machine_start_empty_id(C) ->
     % создание машины с невалидным ID не обрабатывается по протоколу
     {'EXIT', {{woody_error, _}, _}} =
-        (catch mg_automaton_client:start(automaton_options(C), ?EMPTY_ID, ?Tag)),
+        (catch mg_automaton_client:start(automaton_options(C), ?EMPTY_ID, ?TAG)),
     ok.
 
 -spec machine_start(config()) -> _.
@@ -386,7 +387,7 @@ machine_start(C) ->
 -spec machine_already_exists(config()) -> _.
 machine_already_exists(C) ->
     #mg_stateproc_MachineAlreadyExists{} =
-        (catch mg_automaton_client:start(automaton_options(C), ?ID, ?Tag)).
+        (catch mg_automaton_client:start(automaton_options(C), ?ID, ?TAG)).
 
 -spec machine_id_not_found(config()) -> _.
 machine_id_not_found(C) ->
@@ -415,7 +416,7 @@ machine_tag_not_found(C) ->
 
 -spec machine_call_by_tag(config()) -> _.
 machine_call_by_tag(C) ->
-    <<"nop">> = mg_automaton_client:call(automaton_options(C), ?Ref, <<"nop">>).
+    <<"nop">> = mg_automaton_client:call(automaton_options(C), ?REF, <<"nop">>).
 
 -spec machine_remove(config()) -> _.
 machine_remove(C) ->
@@ -483,7 +484,7 @@ get_simple_history(C, ID, HRange) ->
                 AuxState
             }
     catch
-        #mg_stateproc_MachineNotFound{} ->
+        throw:#mg_stateproc_MachineNotFound{} ->
             undefined
     end.
 
